@@ -151,7 +151,6 @@ function drawMonitor() {
   document.getElementById("mon-ram-title").textContent = T("monRAM");
   document.getElementById("mon-gpu-title").textContent = T("monGPU");
   document.getElementById("mon-disk-title").textContent = T("monDisk");
-  document.getElementById("mon-temp-title").textContent = T("monTemp");
   document.getElementById("mon-uptime-title").textContent = T("monUptime");
   document.getElementById("mon-network-title").textContent = T("monNetwork");
   document.getElementById("btn-speedtest-text").textContent = T("runSpeedTest");
@@ -166,9 +165,38 @@ async function fetchMonitor() {
     const raw = await window.go.main.App.GetSystemInfo();
     const d = JSON.parse(raw);
     if (d.error) return;
+    // Find CPU temp (first non-GPU thermal zone) and GPU temp from temps array
+    let cpuTempC = null;
+    let gpuTempC = null;
+    if (Array.isArray(d.temps)) {
+      for (const t of d.temps) {
+        const v = Number(t.temp);
+        if (!isFinite(v) || v <= 0) continue;
+        if (t.name === "GPU" && gpuTempC === null) gpuTempC = v;
+        else if (t.name !== "GPU" && cpuTempC === null) cpuTempC = v;
+      }
+    }
+    const tempColor = (c) =>
+      c > 80 ? "var(--rd)" : c > 65 ? "var(--yl)" : "var(--gn)";
+
     if (d.cpu) {
       const cp = Number(d.cpu.pct) || 0;
-      document.getElementById("mon-cpu-val").textContent = cp + "%";
+      const cpuValEl = document.getElementById("mon-cpu-val");
+      cpuValEl.replaceChildren();
+      const pctSpan = document.createElement("span");
+      pctSpan.textContent = cp + "%";
+      cpuValEl.appendChild(pctSpan);
+      if (cpuTempC !== null) {
+        const sep = document.createElement("span");
+        sep.style.cssText =
+          "color:var(--tx3);font-size:.65em;margin:0 8px;font-weight:400";
+        sep.textContent = "·";
+        const tempSpan = document.createElement("span");
+        tempSpan.style.cssText =
+          "color:" + tempColor(cpuTempC) + ";font-size:.75em";
+        tempSpan.textContent = cpuTempC + "°C";
+        cpuValEl.append(sep, tempSpan);
+      }
       document.getElementById("mon-cpu-bar").style.width = cp + "%";
       document.getElementById("mon-cpu-sub").textContent =
         (d.cpu.name || "") +
@@ -185,12 +213,27 @@ async function fetchMonitor() {
     if (d.gpus && d.gpus.length > 0) {
       const g = d.gpus[0];
       const gu = Number(g.usage) || 0;
-      document.getElementById("mon-gpu-val").textContent =
-        gu > 0 ? gu + "%" : "--";
+      const gpuTemp = gpuTempC !== null ? gpuTempC : Number(g.temp) || null;
+      document.getElementById("mon-gpu-bar").style.width = gu + "%";
+      const gpuValEl = document.getElementById("mon-gpu-val");
+      gpuValEl.replaceChildren();
+      const pctSpan = document.createElement("span");
+      pctSpan.textContent = gu > 0 ? gu + "%" : "--";
+      gpuValEl.appendChild(pctSpan);
+      if (gpuTemp !== null && gpuTemp > 0) {
+        const sep = document.createElement("span");
+        sep.style.cssText =
+          "color:var(--tx3);font-size:.65em;margin:0 8px;font-weight:400";
+        sep.textContent = "·";
+        const tempSpan = document.createElement("span");
+        tempSpan.style.cssText =
+          "color:" + tempColor(gpuTemp) + ";font-size:.75em";
+        tempSpan.textContent = gpuTemp + "°C";
+        gpuValEl.append(sep, tempSpan);
+      }
       const sub = [];
       if (g.name) sub.push(g.name);
       if (g.ramGB) sub.push(Number(g.ramGB) + " GB");
-      if (g.temp || g.temp === 0) sub.push(Number(g.temp) + "°C");
       document.getElementById("mon-gpu-sub").textContent =
         sub.join(" · ") || "--";
     }
@@ -221,28 +264,25 @@ async function fetchMonitor() {
         diskEl.appendChild(row);
       });
     }
-    if (d.temps && d.temps.length > 0) {
-      const tempEl = document.getElementById("mon-temp-val");
-      tempEl.replaceChildren();
-      d.temps.forEach((t, i) => {
-        if (i > 0) tempEl.append(" ");
-        const tmp = Number(t.temp) || 0;
-        const cl =
-          tmp > 80 ? "var(--rd)" : tmp > 60 ? "var(--yl)" : "var(--gn)";
-        const sp = document.createElement("span");
-        sp.style.color = cl;
-        sp.textContent = tmp + "°C";
-        tempEl.appendChild(sp);
-      });
-      document.getElementById("mon-temp-sub").textContent = d.temps
-        .map((t) => t.name)
-        .join(", ");
-    } else {
-      document.getElementById("mon-temp-val").textContent = "--";
-      document.getElementById("mon-temp-sub").textContent = T("monTempNA");
-    }
     if (d.uptime) {
       document.getElementById("mon-uptime-val").textContent = d.uptime;
+      // Compute boot time from uptime string ("Xd Yh Zm")
+      const m = String(d.uptime).match(/(\d+)d\s+(\d+)h\s+(\d+)m/);
+      if (m) {
+        const secs =
+          parseInt(m[1]) * 86400 + parseInt(m[2]) * 3600 + parseInt(m[3]) * 60;
+        const bootMs = Date.now() - secs * 1000;
+        const boot = new Date(bootMs);
+        const fmt = boot.toLocaleString(lang === "es" ? "es-ES" : "en-US", {
+          weekday: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+          day: "numeric",
+          month: "short",
+        });
+        document.getElementById("mon-uptime-sub").textContent =
+          (lang === "es" ? "Iniciado " : "Booted ") + fmt;
+      }
     }
   } catch (e) {
     console.warn("[Monitor] Failed to fetch system info:", e);
@@ -253,11 +293,48 @@ async function fetchNetworkLatency() {
   try {
     const raw = await window.go.main.App.GetNetworkLatency();
     const d = JSON.parse(raw);
-    if (!Array.isArray(d)) return;
-    const lines = d
-      .map((r) => `${r.host}: ${r.ms >= 0 ? r.ms + " ms" : "--"}`)
-      .join(" · ");
-    document.getElementById("mon-network-val").textContent = lines;
+    const grid = document.getElementById("mon-network-val");
+    if (!grid) return;
+    if (!Array.isArray(d) || d.length === 0) {
+      grid.replaceChildren(
+        Object.assign(document.createElement("div"), {
+          className: "latency-empty",
+          textContent: "--",
+        }),
+      );
+      return;
+    }
+    const rows = d.map((r) => {
+      const ms = Number(r.ms);
+      const ok = ms >= 0;
+      let cls = "latency-dot";
+      let badgeCls = "latency-badge";
+      if (!ok) {
+        cls += " latency-dot-err";
+        badgeCls += " latency-badge-err";
+      } else if (ms < 30) {
+        cls += " latency-dot-good";
+        badgeCls += " latency-badge-good";
+      } else if (ms < 100) {
+        cls += " latency-dot-mid";
+        badgeCls += " latency-badge-mid";
+      } else {
+        cls += " latency-dot-bad";
+        badgeCls += " latency-badge-bad";
+      }
+      const row = h(
+        "div",
+        { className: "latency-row" },
+        h("span", { className: cls }),
+        h("span", { className: "latency-host", textContent: r.host }),
+        h("span", {
+          className: badgeCls,
+          textContent: ok ? ms + " ms" : "timeout",
+        }),
+      );
+      return row;
+    });
+    grid.replaceChildren(...rows);
   } catch (e) {
     console.warn("[Network] Failed to fetch latency:", e);
   }
@@ -435,10 +512,20 @@ async function runSpeedTest() {
   document.getElementById("btn-speedtest-text").textContent = T("runSpeedTest");
 }
 
+// SVG paths (Lucide-style) for cleanup icons. Wrapped in <svg> at render time.
+function makeSvgIcon(paths) {
+  const el = document.createElement("span");
+  el.className = "cleanup-icon";
+  el.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    paths +
+    "</svg>";
+  return el;
+}
 const CLEANUP_TASKS = [
   {
     id: "temp",
-    icon: "📁",
+    svg: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
     n: { en: "Temporary files", es: "Archivos temporales" },
     d: {
       en: "%TEMP% and Windows\\Temp folders",
@@ -447,7 +534,7 @@ const CLEANUP_TASKS = [
   },
   {
     id: "recycle",
-    icon: "🗑",
+    svg: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>',
     n: { en: "Recycle Bin", es: "Papelera de reciclaje" },
     d: {
       en: "Empty all drives recycle bins",
@@ -456,7 +543,7 @@ const CLEANUP_TASKS = [
   },
   {
     id: "prefetch",
-    icon: "⚡",
+    svg: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
     n: { en: "Prefetch files", es: "Archivos Prefetch" },
     d: {
       en: "Windows\\Prefetch — safe to delete",
@@ -465,7 +552,7 @@ const CLEANUP_TASKS = [
   },
   {
     id: "winupdate",
-    icon: "🔽",
+    svg: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     n: { en: "Windows Update cache", es: "Caché de Windows Update" },
     d: {
       en: "SoftwareDistribution\\Download folder",
@@ -474,7 +561,7 @@ const CLEANUP_TASKS = [
   },
   {
     id: "thumbnails",
-    icon: "🖼",
+    svg: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
     n: { en: "Thumbnail cache", es: "Caché de miniaturas" },
     d: {
       en: "Explorer thumbnail cache files",
@@ -483,13 +570,13 @@ const CLEANUP_TASKS = [
   },
   {
     id: "dnscache",
-    icon: "🌐",
+    svg: '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
     n: { en: "DNS cache", es: "Caché DNS" },
     d: { en: "Flush DNS resolver cache", es: "Limpiar caché del resolver DNS" },
   },
   {
     id: "memorydump",
-    icon: "💥",
+    svg: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="12" y1="9" x2="12.01" y2="9"/>',
     n: { en: "Memory dumps", es: "Volcados de memoria" },
     d: {
       en: "MEMORY.DMP + Minidump folder",
@@ -523,7 +610,7 @@ function drawCleanup() {
           }),
           h("span", { className: "toggle-slider" }),
         ),
-        h("span", { style: "font-size:1.2em", textContent: t.icon }),
+        makeSvgIcon(t.svg),
         h(
           "div",
           { className: "cleanup-item-body" },
@@ -1011,6 +1098,7 @@ function drawApps() {
     "Comunicacion",
     "AI",
     "Utilidades",
+    "MicrosoftTools",
   ];
   const allCats = [...new Set(APPS.map((a) => a.cat))].sort((a, b) => {
     const ai = catOrder.indexOf(a),
@@ -1062,7 +1150,9 @@ function drawApps() {
                   ),
                   h("div", { className: "app-desc", textContent: LO(a.d) }),
                   h("div", { className: "app-actions" },
-                    h("button", { className: "app-btn app-btn-uninstall", "data-aid": a.id, "data-action": "uninstall", disabled: noPkg && !isInst, textContent: T("uninstall") }),
+                    isInst
+                      ? h("button", { className: "app-btn app-btn-uninstall", "data-aid": a.id, "data-action": "uninstall", disabled: noPkg, textContent: T("uninstall") })
+                      : h("button", { className: "app-btn app-btn-install", "data-aid": a.id, "data-action": "install", disabled: noPkg, textContent: T("install") }),
                     h("button", { className: "app-btn app-btn-web", "data-aid": a.id, "data-action": "web", textContent: T("website") }),
                   ),
                 ),
@@ -1128,6 +1218,12 @@ function drawApps() {
       doUninstall(this.dataset.aid);
     });
   });
+  grid.querySelectorAll(".app-btn-install").forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      doInstallSingle(this.dataset.aid);
+    });
+  });
   grid.querySelectorAll(".app-btn-web").forEach((btn) => {
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
@@ -1163,6 +1259,43 @@ async function doInstall() {
   );
   try {
     const r = await window.go.main.App.InstallApps(ids, lang, pkgMgr);
+    if (r) appendLog(r);
+    appendLog("[OK] " + T("installOk"));
+    setTerm(T("installOk"), "ok");
+  } catch (e) {
+    appendLog("[ERR] " + T("installFail") + ": " + e);
+    setTerm(T("installFail"), "err");
+  }
+  setBusy(false);
+  checkInstalled();
+}
+
+async function doInstallSingle(appId) {
+  const app = APPS.find((a) => a.id === appId);
+  if (!app) return;
+  const pkg = pkgMgr === "winget" ? app.w : app.c;
+  if (!pkg) {
+    appendLog(
+      "[WARN] " +
+        LO(app.n) +
+        " has no " +
+        (pkgMgr === "winget" ? "WinGet" : "Chocolatey") +
+        " ID — open the website to download manually",
+    );
+    return;
+  }
+  if (busy) return;
+  setBusy(true, 300000);
+  setTerm(T("installRunning"), "running");
+  appendLog(
+    "--- Installing " +
+      LO(app.n) +
+      " via " +
+      (pkgMgr === "winget" ? "WinGet" : "Chocolatey") +
+      " ---",
+  );
+  try {
+    const r = await window.go.main.App.InstallApps([pkg], lang, pkgMgr);
     if (r) appendLog(r);
     appendLog("[OK] " + T("installOk"));
     setTerm(T("installOk"), "ok");

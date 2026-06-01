@@ -751,6 +751,14 @@ header h1 {
   background: var(--rd2);
   border-color: var(--rd);
 }
+.app-btn-install {
+  color: var(--gn);
+  border-color: rgba(57, 255, 20, 0.25);
+}
+.app-btn-install:hover {
+  background: var(--gn2);
+  border-color: var(--gn);
+}
 .app-btn-web {
   color: var(--tx3);
 }
@@ -1217,6 +1225,26 @@ header h1 {
 .cat-card {
   scroll-margin-top: 100px;
 }
+
+/* Sticky header in Apps tab (pkg toggle, search, filters) */
+#tab-apps {
+  padding-top: 0;
+}
+.apps-sticky-header {
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 5;
+  padding: 16px 0 12px;
+  margin: 0 0 12px 0;
+  border-bottom: 1px solid #1a1a1a;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app-cat-section {
+  scroll-margin-top: 200px;
+}
 .term-header {
   cursor: pointer;
   display: flex;
@@ -1529,17 +1557,30 @@ header h1 {
 .monitor-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
+  gap: 12px;
   padding: 8px 0;
 }
 .mon-card {
   background: var(--bg2);
   border: 1px solid var(--brd);
   border-radius: 10px;
-  padding: 18px 20px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  min-height: 130px;
+}
+/* Push subtitle to bottom of card so vertical space distributes nicely */
+.mon-card-sub {
+  margin-top: auto;
+}
+/* DISCO spans 2 cols so its per-drive bars have breathing room */
+.mon-card.mon-span-2 {
+  grid-column: span 2;
+}
+/* RED takes its own full-width row */
+.mon-card.mon-full {
+  grid-column: 1 / -1;
 }
 .mon-card.mon-wide {
   grid-column: span 2;
@@ -1550,7 +1591,103 @@ header h1 {
   gap: 8px;
 }
 .mon-card-icon {
-  font-size: 1.2em;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--gn);
+  filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.25));
+}
+
+/* Network latency rows */
+.latency-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.latency-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border-left: 2px solid transparent;
+  transition: background 0.15s;
+}
+.latency-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+.latency-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px currentColor;
+}
+.latency-dot-good {
+  color: var(--gn);
+  background: var(--gn);
+}
+.latency-dot-mid {
+  color: #f5b942;
+  background: #f5b942;
+}
+.latency-dot-bad {
+  color: var(--rd);
+  background: var(--rd);
+}
+.latency-dot-err {
+  color: #555;
+  background: #555;
+  box-shadow: none;
+}
+.latency-host {
+  flex: 1;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 0.88em;
+  color: var(--tx2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.latency-badge {
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 0.82em;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 70px;
+  text-align: center;
+}
+.latency-badge-good {
+  background: rgba(57, 255, 20, 0.12);
+  color: var(--gn);
+  border: 1px solid rgba(57, 255, 20, 0.3);
+}
+.latency-badge-mid {
+  background: rgba(245, 185, 66, 0.12);
+  color: #f5b942;
+  border: 1px solid rgba(245, 185, 66, 0.3);
+}
+.latency-badge-bad {
+  background: rgba(255, 51, 51, 0.12);
+  color: var(--rd);
+  border: 1px solid rgba(255, 51, 51, 0.3);
+}
+.latency-badge-err {
+  background: rgba(120, 120, 120, 0.1);
+  color: #777;
+  border: 1px solid #333;
+}
+.latency-empty {
+  color: var(--tx3);
+  font-size: 0.85em;
+  padding: 8px;
+  text-align: center;
 }
 .mon-card-title {
   font-size: 0.82em;
@@ -1712,6 +1849,21 @@ header h1 {
 .cleanup-item.selected {
   background: rgba(57, 255, 20, 0.04);
   border-color: var(--gn);
+}
+.cleanup-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--gn);
+  filter: drop-shadow(0 0 4px rgba(57, 255, 20, 0.25));
+}
+.cleanup-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.cleanup-item.selected .cleanup-icon {
+  filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.5));
 }
 .cleanup-item-body {
   flex: 1;

@@ -60,7 +60,7 @@ type App struct {
 }
 
 const (
-	appVersion    = "1.2.0"
+	appVersion    = "1.2.1"
 	githubRepo    = "oscarcodedev/CodeWinOptimizer-App"
 	minOpInterval = 2 * time.Second
 )
@@ -873,14 +873,43 @@ $tempList = @()
 if ($nvidiaIdx -ge 0 -and $gpuList[$nvidiaIdx].temp -gt 0) {
 	$tempList += [PSCustomObject]@{ name = 'GPU'; temp = $gpuList[$nvidiaIdx].temp }
 }
+
+# CPU temp: try multiple sources, prefer the one that returns a sensible value.
+# AMD Ryzen rarely exposes via MSAcpi; LibreHardwareMonitor/OpenHardwareMonitor
+# expose it if running. Perf counter sometimes works on AMD.
+$cpuTemp = -1
+# 1. OpenHardwareMonitor / LibreHardwareMonitor WMI namespaces (if their service is running)
+foreach ($ns in @('root/OpenHardwareMonitor', 'root/LibreHardwareMonitor')) {
+	if ($cpuTemp -ge 0) { break }
+	try {
+		$sensors = Get-CimInstance -Namespace $ns -ClassName Sensor -ErrorAction Stop
+		$cpuSensor = $sensors | Where-Object { $_.SensorType -eq 'Temperature' -and ($_.Name -match 'CPU Package|CPU Core|Core \(Tctl|Tdie' -or $_.Parent -match 'cpu') } | Select-Object -First 1
+		if ($cpuSensor -and $cpuSensor.Value -gt 0 -and $cpuSensor.Value -le 125) {
+			$cpuTemp = [math]::Round($cpuSensor.Value, 1)
+		}
+	} catch {}
+}
+# 2. Perf counter (works on some AMD systems)
+if ($cpuTemp -lt 0) {
+	try {
+		$counters = (Get-Counter '\Thermal Zone Information(*)\High Precision Temperature' -ErrorAction Stop).CounterSamples
+		foreach ($c in $counters) {
+			$t = [math]::Round(($c.CookedValue / 10.0) - 273.15, 1)
+			if ($t -gt 20 -and $t -lt 125 -and ($cpuTemp -lt 0 -or $t -gt $cpuTemp)) { $cpuTemp = $t }
+		}
+	} catch {}
+}
+# 3. MSAcpi thermal zones (Intel-friendly fallback)
 try {
 	$wmiTemps = Get-CimInstance -Namespace root/wmi MSAcpi_ThermalZoneTemperature -ErrorAction Stop
 	foreach ($tz in $wmiTemps) {
-		$n = $tz.InstanceName -replace '.*\\',''
 		$t = [math]::Round(($tz.CurrentTemperature - 2732) / 10.0, 1)
-		if ($t -ge 0 -and $t -le 125) { $tempList += [PSCustomObject]@{ name = $n; temp = $t } }
+		if ($t -ge 20 -and $t -le 125 -and ($cpuTemp -lt 0 -or $t -gt $cpuTemp)) { $cpuTemp = $t }
 	}
 } catch {}
+if ($cpuTemp -gt 0) {
+	$tempList += [PSCustomObject]@{ name = 'CPU'; temp = $cpuTemp }
+}
 
 [PSCustomObject]@{
 	gpus = @($gpuList);
@@ -950,18 +979,23 @@ func (a *App) GetHealthScore() string {
 	breakdown := map[string]int{}
 	var tips []string
 
-	// RAM usage (30 points max)
+	// RAM usage (30 points max) — finer granularity so 100/A+ is genuinely rare
 	ramScore := 30
 	if vmem, err := mem.VirtualMemory(); err == nil {
 		pct := vmem.UsedPercent
-		if pct > 90 {
+		switch {
+		case pct > 90:
 			ramScore = 5
 			tips = append(tips, "RAM usage critical (>90%)")
-		} else if pct > 80 {
+		case pct > 80:
 			ramScore = 15
 			tips = append(tips, "RAM usage high (>80%)")
-		} else if pct > 60 {
+		case pct > 70:
 			ramScore = 22
+		case pct > 50:
+			ramScore = 27
+		case pct > 30:
+			ramScore = 29
 		}
 	} else {
 		ramScore = 15
@@ -972,38 +1006,69 @@ func (a *App) GetHealthScore() string {
 	cpuScore := 20
 	if percents, err := cpu.Percent(time.Second, false); err == nil && len(percents) > 0 {
 		pct := percents[0]
-		if pct > 90 {
+		switch {
+		case pct > 90:
 			cpuScore = 2
 			tips = append(tips, "CPU usage very high (>90%)")
-		} else if pct > 70 {
+		case pct > 70:
 			cpuScore = 8
 			tips = append(tips, "CPU usage elevated (>70%)")
-		} else if pct > 50 {
+		case pct > 50:
 			cpuScore = 14
+		case pct > 25:
+			cpuScore = 18
 		}
 	} else {
 		cpuScore = 10
 	}
 	breakdown["cpu"] = cpuScore
 
-	// Disk space (30 points max — checks system drive)
+	// Disk (30 points max) — checks BOTH free GB and used % on system drive
 	diskScore := 30
-	psCmd := `$d = Get-PSDrive C -ErrorAction SilentlyContinue; if ($d) { [math]::Round($d.Free / 1GB, 1) } else { -1 }`
+	psCmd := `$d = Get-PSDrive C -ErrorAction SilentlyContinue; if ($d) { $total = $d.Used + $d.Free; $pct = if ($total -gt 0) { [math]::Round(($d.Used / $total) * 100, 1) } else { 0 }; ('{0},{1}' -f [math]::Round($d.Free / 1GB, 1), $pct) } else { '-1,0' }`
 	cmd := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", psCmd)
 	cmd.SysProcAttr = getSysProcAttr()
 	if out, err := cmd.CombinedOutput(); err == nil {
-		freeStr := strings.TrimSpace(string(out))
-		var freeGB float64
-		if _, err := fmt.Sscanf(freeStr, "%f", &freeGB); err == nil {
+		s := strings.TrimSpace(string(out))
+		parts := strings.SplitN(s, ",", 2)
+		if len(parts) == 2 {
+			var freeGB, usedPct float64
+			fmt.Sscanf(parts[0], "%f", &freeGB)
+			fmt.Sscanf(parts[1], "%f", &usedPct)
+			// Penalize based on free GB
+			gbPenalty := 0
 			if freeGB < 5 {
-				diskScore = 2
+				gbPenalty = 28
 				tips = append(tips, "System drive critically low (<5 GB free)")
 			} else if freeGB < 15 {
-				diskScore = 10
+				gbPenalty = 18
 				tips = append(tips, "System drive low on space (<15 GB free)")
 			} else if freeGB < 30 {
-				diskScore = 20
+				gbPenalty = 10
 				tips = append(tips, "Consider freeing disk space (<30 GB free)")
+			}
+			// Penalize based on % used (independent signal: a 2TB drive at 90% has plenty of GB but is still concerning)
+			pctPenalty := 0
+			switch {
+			case usedPct > 90:
+				pctPenalty = 18
+				tips = append(tips, fmt.Sprintf("System drive %g%% full — consider cleanup", usedPct))
+			case usedPct > 80:
+				pctPenalty = 10
+				tips = append(tips, fmt.Sprintf("System drive %g%% full", usedPct))
+			case usedPct > 65:
+				pctPenalty = 4
+			case usedPct > 50:
+				pctPenalty = 2
+			}
+			// Apply the larger of the two penalties (don't double-penalize same issue)
+			penalty := gbPenalty
+			if pctPenalty > penalty {
+				penalty = pctPenalty
+			}
+			diskScore = 30 - penalty
+			if diskScore < 0 {
+				diskScore = 0
 			}
 		}
 	} else {
@@ -1011,24 +1076,44 @@ func (a *App) GetHealthScore() string {
 	}
 	breakdown["disk"] = diskScore
 
-	// Temperature (10 points max)
+	// Temperature (10 points max) — takes worst of CPU thermal zone + GPU temp
 	tempScore := 10
+	maxTemp := 0.0
+	tempLabel := ""
+	// CPU thermal zone
 	psTemp := `try { $t = (Get-CimInstance -Namespace root/wmi MSAcpi_ThermalZoneTemperature -ErrorAction Stop | Select-Object -First 1).CurrentTemperature; [math]::Round(($t - 2732) / 10.0, 1) } catch { -1 }`
 	cmd2 := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", psTemp)
 	cmd2.SysProcAttr = getSysProcAttr()
 	if out, err := cmd2.CombinedOutput(); err == nil {
-		tempStr := strings.TrimSpace(string(out))
-		var temp float64
-		if _, err := fmt.Sscanf(tempStr, "%f", &temp); err == nil && temp > 0 {
-			if temp > 85 {
-				tempScore = 0
-				tips = append(tips, "Temperature critical (>85°C)")
-			} else if temp > 70 {
-				tempScore = 4
-				tips = append(tips, "Temperature high (>70°C)")
-			} else if temp > 60 {
-				tempScore = 7
-			}
+		var t float64
+		if _, err := fmt.Sscanf(strings.TrimSpace(string(out)), "%f", &t); err == nil && t > 0 && t > maxTemp {
+			maxTemp = t
+			tempLabel = "CPU"
+		}
+	}
+	// GPU temp (nvidia-smi)
+	psGpu := `try { $out = & nvidia-smi --query-gpu=temperature.gpu --format=csv,noheader,nounits 2>$null; if ($LASTEXITCODE -eq 0 -and $out) { ($out -split [char]10 | Where-Object { $_.Trim() } | ForEach-Object { [int]$_.Trim() } | Measure-Object -Maximum).Maximum } else { -1 } } catch { -1 }`
+	cmd3 := exec.Command("powershell", "-NoProfile", "-NonInteractive", "-Command", psGpu)
+	cmd3.SysProcAttr = getSysProcAttr()
+	if out, err := cmd3.CombinedOutput(); err == nil {
+		var t float64
+		if _, err := fmt.Sscanf(strings.TrimSpace(string(out)), "%f", &t); err == nil && t > 0 && t > maxTemp {
+			maxTemp = t
+			tempLabel = "GPU"
+		}
+	}
+	if maxTemp > 0 {
+		switch {
+		case maxTemp > 85:
+			tempScore = 0
+			tips = append(tips, fmt.Sprintf("%s temperature critical (>85°C)", tempLabel))
+		case maxTemp > 75:
+			tempScore = 4
+			tips = append(tips, fmt.Sprintf("%s temperature high (>75°C)", tempLabel))
+		case maxTemp > 65:
+			tempScore = 7
+		case maxTemp > 55:
+			tempScore = 9
 		}
 	}
 	breakdown["temp"] = tempScore
