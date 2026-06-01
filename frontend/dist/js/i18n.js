@@ -58,6 +58,7 @@ window.L.en = {
   warn: "warnings",
   adminWarn:
     "Run as Administrator — registry, DISM, bcdedit, and WinGet commands require admin privileges",
+  install: "Install",
   uninstall: "Uninstall",
   website: "Website",
   installed: "Installed",
@@ -123,6 +124,7 @@ window.L.en = {
   catUtilidades: "Utilities",
   catComunicacion: "Communication",
   catAI: "AI",
+  catMicrosoftTools: "Microsoft Tools",
   catEssential: "Essential Tweaks",
   catAdvanced: "Advanced Tweaks",
   profileSave: "Save Profile",
@@ -224,6 +226,7 @@ window.L.es = {
   warn: "advertencias",
   adminWarn:
     "Ejecutar como Administrador — comandos de registro, DISM, bcdedit y WinGet requieren privilegios de admin",
+  install: "Instalar",
   uninstall: "Desinstalar",
   website: "Web",
   installed: "Instalado",
@@ -289,6 +292,7 @@ window.L.es = {
   catUtilidades: "Utilidades",
   catComunicacion: "Comunicacion",
   catAI: "IA",
+  catMicrosoftTools: "Microsoft Tools",
   catEssential: "Tweaks Esenciales",
   catAdvanced: "Tweaks Avanzados",
   profileSave: "Guardar Perfil",
