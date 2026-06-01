@@ -10,6 +10,15 @@ if (-not $version) {
 
 Write-Host "Building CodeWinOptimizer v$version ..." -ForegroundColor Cyan
 
+# Verify bundled assets are present (go:embed will fail otherwise)
+$oosu10 = "assets\OOSU10.exe"
+if (-not (Test-Path $oosu10)) {
+    Write-Host "ERROR: $oosu10 not found." -ForegroundColor Red
+    Write-Host "Download O&O ShutUp10++ portable from https://www.oo-software.com/en/shutup10" -ForegroundColor Yellow
+    Write-Host "and place it at $oosu10 before building." -ForegroundColor Yellow
+    exit 1
+}
+
 wails build
 if ($LASTEXITCODE -ne 0) {
     Write-Host "ERROR: Build failed" -ForegroundColor Red

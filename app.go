@@ -28,6 +28,9 @@ import (
 //go:embed tweaks.json
 var tweaksJSON []byte
 
+//go:embed assets/OOSU10.exe
+var oosu10Bytes []byte
+
 type Category struct {
 	ID     string            `json:"id"`
 	Icon   string            `json:"icon"`
@@ -187,6 +190,27 @@ func (a *App) GetCategories() []Category {
 
 func (a *App) GetVersion() string {
 	return appVersion
+}
+
+// RestartSystem schedules a Windows restart in 10 seconds.
+// Returns an error string (empty on success).
+func (a *App) RestartSystem() string {
+	cmd := exec.Command("shutdown.exe", "/r", "/t", "10", "/c", "CodeWinOptimizer: restarting to apply tweaks")
+	cmd.SysProcAttr = getSysProcAttr()
+	if err := cmd.Run(); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+// CancelRestart cancels a pending restart scheduled by RestartSystem.
+func (a *App) CancelRestart() string {
+	cmd := exec.Command("shutdown.exe", "/a")
+	cmd.SysProcAttr = getSysProcAttr()
+	if err := cmd.Run(); err != nil {
+		return err.Error()
+	}
+	return ""
 }
 
 func (a *App) CheckForUpdate() string {
@@ -586,6 +610,48 @@ func (a *App) OpenURL(url string) {
 		return
 	}
 	wailsRuntime.BrowserOpenURL(a.ctx, url)
+}
+
+// LaunchShutUp10 extracts the embedded O&O ShutUp10++ portable binary
+// (cached under %LOCALAPPDATA%\CodeWinOptimizer\OOSU10.exe) and launches it.
+// Returns "" on success or an error string.
+func (a *App) LaunchShutUp10() string {
+	cacheDir := os.Getenv("LOCALAPPDATA")
+	if cacheDir == "" {
+		home, _ := os.UserHomeDir()
+		cacheDir = filepath.Join(home, "AppData", "Local")
+	}
+	cacheDir = filepath.Join(cacheDir, "CodeWinOptimizer")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		a.emitLog(fmt.Sprintf("[ERR] Cannot create cache dir: %s", err.Error()))
+		return err.Error()
+	}
+	target := filepath.Join(cacheDir, "OOSU10.exe")
+
+	// Extract only if missing or size differs from embedded
+	needsExtract := true
+	if st, err := os.Stat(target); err == nil {
+		if st.Size() == int64(len(oosu10Bytes)) {
+			needsExtract = false
+		}
+	}
+	if needsExtract {
+		a.emitLog(fmt.Sprintf("[INFO] Extracting bundled ShutUp10++ (%d MB) to cache...", len(oosu10Bytes)/(1024*1024)))
+		if err := os.WriteFile(target, oosu10Bytes, 0755); err != nil {
+			a.emitLog(fmt.Sprintf("[ERR] Failed to write ShutUp10++: %s", err.Error()))
+			return err.Error()
+		}
+		a.emitLog(fmt.Sprintf("[OK] Cached at %s", target))
+	}
+
+	a.emitLog(fmt.Sprintf("[OK] Launching O&O ShutUp10++: %s", target))
+	cmd := exec.Command(target)
+	cmd.SysProcAttr = getSysProcAttr()
+	if err := cmd.Start(); err != nil {
+		a.emitLog(fmt.Sprintf("[ERR] Failed to launch ShutUp10++: %s", err.Error()))
+		return err.Error()
+	}
+	return ""
 }
 
 func openExplorerAt(dir string) {
