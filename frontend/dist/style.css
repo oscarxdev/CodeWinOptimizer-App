@@ -1145,15 +1145,11 @@ header h1 {
   min-width: 36px;
 }
 /* Make header content shrink gracefully */
-#terminal:not(.collapsed) .term-brand,
 #terminal:not(.collapsed) #term-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
-}
-#terminal:not(.collapsed) .term-brand {
-  flex-shrink: 1;
 }
 #terminal.collapsed .term-header {
   flex-direction: column;
@@ -1163,7 +1159,6 @@ header h1 {
   justify-content: flex-start;
   border-bottom: none;
 }
-#terminal.collapsed .term-brand,
 #terminal.collapsed #term-title,
 #terminal.collapsed .term-actions {
   display: none;
@@ -1335,12 +1330,35 @@ header h1 {
   background: rgba(255, 51, 51, 0.25);
   border-color: var(--rd);
 }
-.term-brand {
-  font-size: 0.68em;
-  color: var(--tx3);
+/* GLOBAL FOOTER */
+#app-footer {
   flex-shrink: 0;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: #0a0a0a;
+  border-top: 1px solid #1a1a1a;
+  font-size: 0.7em;
+  color: var(--tx3);
+  user-select: none;
+  min-height: 24px;
+}
+.footer-brand {
+  font-weight: 600;
+  color: var(--tx2);
+}
+.footer-version {
+  color: var(--gn);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.footer-author {
   opacity: 0.7;
+}
+.footer-sep {
+  opacity: 0.4;
 }
 
 /* SECONDARY BUTTON */

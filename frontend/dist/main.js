@@ -679,6 +679,9 @@ async function boot() {
   document
     .getElementById("btn-tweaks-select-all")
     ?.addEventListener("click", selectAllTweaks);
+  document
+    .getElementById("btn-open-shutup10")
+    ?.addEventListener("click", openShutUp10);
   document.querySelectorAll(".profile-quick-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       doLoadProfile(this.dataset.profile);
@@ -714,6 +717,7 @@ async function boot() {
   initTheme();
   initLayoutSplit();
   initTerminalResize();
+  initFooterVersion();
   document.getElementById("btn-clear").addEventListener("click", clearTerm);
   document.getElementById("btn-copy").addEventListener("click", copyTerm);
   document
@@ -1381,16 +1385,47 @@ async function doApply() {
   setTerm(T("tweaksRunning"), "running");
   const ids = Array.from(pickedT);
   appendLog("--- " + T("tweaksRunning") + " (" + ids.length + " tweaks) ---");
+  let ok = false;
   try {
     const r = await window.go.main.App.RunCommands(ids, lang);
     if (r) appendLog(r);
     appendLog("[OK] " + T("tweaksDone"));
     setTerm(T("tweaksDone"), "ok");
+    ok = true;
   } catch (e) {
     appendLog("[ERR] " + e);
     setTerm("Error", "err");
   }
   setBusy(false);
+  if (ok) await promptRestart();
+}
+
+async function openShutUp10() {
+  try {
+    const result = await window.go.main.App.LaunchShutUp10();
+    if (result) appendLog("[ERR] " + result);
+  } catch (e) {
+    appendLog("[ERR] " + e);
+  }
+}
+
+async function promptRestart() {
+  const yes = await showConfirm(T("restartTitle"), T("restartMsg"));
+  if (!yes) {
+    appendLog("[INFO] " + T("restartLater"));
+    return;
+  }
+  try {
+    const err = await window.go.main.App.RestartSystem();
+    if (err) {
+      appendLog("[ERR] Restart failed: " + err);
+    } else {
+      appendLog("[OK] " + T("restartScheduled"));
+      setTerm(T("restartScheduled"), "ok");
+    }
+  } catch (e) {
+    appendLog("[ERR] " + e);
+  }
 }
 
 /* ========= TAB: FEATURES ========= */
@@ -1762,6 +1797,17 @@ function selectAllTweaks() {
   drawTweaks();
   refreshUI();
   appendLog(`[OK] Selected ${added} additional tweak(s) (total: ${pickedT.size})`);
+}
+
+async function initFooterVersion() {
+  const el = document.getElementById("footer-version");
+  if (!el) return;
+  try {
+    const v = await window.go.main.App.GetVersion();
+    if (v) el.textContent = "v" + v;
+  } catch (e) {
+    // Keep hardcoded fallback
+  }
 }
 
 /* ========= LAYOUT: HORIZONTAL SPLIT + RESIZABLE TERMINAL ========= */
