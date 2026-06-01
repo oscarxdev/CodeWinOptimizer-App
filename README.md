@@ -205,8 +205,13 @@ Output: `build/bin/CodeWinOptimizer.exe`
 - [x] **DNS selector** in Monitor tab (9 providers + DHCP reset)
 - [x] **Updates tab** — Default Settings, Security Settings, Disable All Updates modes
 
-### Planned
-
-- [ ] More apps: Docker, Wireshark, VirtualBox, VS 2022 Build Tools, CMake, .NET SDK
+- [x] **Microsoft Tools category** — .NET SDK 6/8/9/10, Sysinternals (TCPView, RDCMan, Process Monitor, Process Explorer), PowerShell 7, PowerToys, NTLite, NuGet, DISMTools, OneDrive
+- [x] **Install/Uninstall button** auto-switches based on installation state (green Install / red Uninstall)
+- [x] **Bundled O&O ShutUp10++** — extract & launch from toolbar, no manual download
+- [x] **Post-apply restart prompt** with cancellable 10-second shutdown
+- [x] **Global footer** showing CodeWinOptimizer · v{version} · OscarDev
+- [x] **Resizable side-docked terminal** with drag handle, width persisted in localStorage
+- [x] **Sticky toolbars** in Tweaks and Apps tabs
+- [x] **Per-category X/Y badges** with neutral/amber/green states based on selection progress
 
 </details>
