@@ -6,7 +6,7 @@
 
 [![Docs](https://img.shields.io/badge/Docs-codewinoptimizer.com-neon?style=flat-square)](https://codewinoptimizer.com/docs) [![GitHub](https://img.shields.io/badge/GitHub-oscarxdev/CodeWinOptimizer--App-222?style=flat-square&logo=github)](https://github.com/oscarxdev/CodeWinOptimizer-App)
 
-Windows optimization & customization tool — 171 apps, **140+ tweaks**, real-time monitor, disk cleanup, network speed test, driver backup, and tweak profiles — all in a single portable .exe.
+Windows optimization & customization tool — 171 apps, **140+ tweaks**, real-time monitor, disk cleanup, network speed test, driver backup, and quick-apply tweak presets — all in a single portable .exe.
 
 Built with [Wails v2](https://wails.io/) — Go backend + HTML/CSS/JS frontend rendered in WebView2.
 
@@ -34,21 +34,21 @@ Prefer a manual download? Grab the `.exe` from the [latest release](https://gith
 
 <details><summary>Click to expand</summary>
 
-| Restore                                     | Apps                                     |
-| ------------------------------------------- | ---------------------------------------- |
-| ![Restore](https://i.imgur.com/REsj7bQ.png) | ![Apps](https://i.imgur.com/kMnT9aW.png) |
+| Restore                          | Apps                          |
+| -------------------------------- | ----------------------------- |
+| ![Restore](docs/preview/1.png)   | ![Apps](docs/preview/2.png)   |
 
-| Tweaks                                     | Features                                     |
-| ------------------------------------------ | -------------------------------------------- |
-| ![Tweaks](https://i.imgur.com/57wnMc5.png) | ![Features](https://i.imgur.com/blgf8FT.png) |
+| Tweaks                           | Features                      |
+| -------------------------------- | ----------------------------- |
+| ![Tweaks](docs/preview/3.png)    | ![Features](docs/preview/4.png) |
 
-| Monitor                                     | Cleanup                                     |
-| ------------------------------------------- | ------------------------------------------- |
-| ![Monitor](https://i.imgur.com/qMgfBqe.png) | ![Cleanup](https://i.imgur.com/jgOlF4j.png) |
+| Monitor                          | Cleanup                       |
+| -------------------------------- | ----------------------------- |
+| ![Monitor](docs/preview/5.png)   | ![Cleanup](docs/preview/6.png) |
 
-| Appearance                                     |
-| ---------------------------------------------- |
-| ![Appearance](https://i.imgur.com/SQ8IbOl.png) |
+| Updates                          | Settings                      |
+| -------------------------------- | ----------------------------- |
+| ![Updates](docs/preview/7.png)   | ![Settings](docs/preview/8.png) |
 
 </details>
 
@@ -85,15 +85,13 @@ Prefer a manual download? Grab the `.exe` from the [latest release](https://gith
 - Single-column accordion layout with scroll when expanded
 - **Clear Selection** button to deselect all tweaks with one click
 
-### 💾 Tweak Profiles
+### 💾 Quick Presets
 
-- **Save/Load** your tweak selections as named profiles (JSON)
-- **3 default profiles** included — one-click apply:
-  - 🔵 **Standard** — 15 safe essential tweaks (privacy, performance, bloat removal)
-  - 🟢 **Gaming** — 21 tweaks optimized for maximum gaming performance
-  - 🟣 **Minimal** — 19 tweaks for the cleanest possible Windows install
-- Profiles stored in `Documents\CodeWinOptimizer\profiles\`
-- Full CRUD: Save, Load, Delete, List
+Three one-click presets in the Tweaks toolbar that pre-select a curated set of tweaks:
+
+- 🔵 **Standard** — 15 safe essential tweaks (privacy, performance, bloat removal)
+- 🟢 **Gaming** — 22 tweaks optimized for maximum gaming performance
+- 🟣 **Minimal** — 20 tweaks for the cleanest possible Windows install
 
 ### 🛠 Features
 
@@ -194,6 +192,17 @@ Output: `build/bin/CodeWinOptimizer.exe`
 
 ### Completed
 
+**v1.2.2 — Installer + Profile Refactor**
+
+- [x] One-line web installer: `irm "https://codewinoptimizer.com/win" | iex`
+- [x] Installer channels: `/win-beta` and `/win-dev` for pre-releases
+- [x] SHA256 checksum verification in the installer (graceful fallback when missing)
+- [x] Simplified Tweaks: removed Save/Load Profile UI, kept the 3 quick preset buttons
+- [x] New Quick Install section in README + landing hero with copy-paste command
+- [x] Rebranding to GitHub user `oscarxdev` across both repos
+
+**Earlier**
+
 - [x] System Restore Point creation (registry bypass for 24h cooldown)
 - [x] Full registry backup to .reg files (5 hives)
 - [x] App manager — install/uninstall via WinGet & Chocolatey (171 apps, 7 categories)
@@ -214,7 +223,7 @@ Output: `build/bin/CodeWinOptimizer.exe`
 - [x] Network latency monitor (TCP ping)
 - [x] **Network speed test** (Speedtest.net via speedtest-go)
 - [x] **Driver backup & restore** (DISM export + pnputil restore)
-- [x] **Save/Load tweak profiles** with 3 default profiles: Standard, Gaming, Minimal
+- [x] **3 quick preset buttons** in Tweaks toolbar: Standard, Gaming, Minimal
 - [x] Clear Selection button for tweaks
 - [x] **DNS selector** in Monitor tab (9 providers + DHCP reset)
 - [x] **Updates tab** — Default Settings, Security Settings, Disable All Updates modes
