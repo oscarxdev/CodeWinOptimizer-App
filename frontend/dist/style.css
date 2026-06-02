@@ -1879,75 +1879,7 @@ header h1 {
   margin-top: 2px;
 }
 
-/* PROFILE DROPDOWN */
-.profile-dropdown {
-  position: relative;
-  display: inline-block;
-}
-.profile-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  background: var(--bg2);
-  border: 1px solid var(--brd);
-  border-radius: 8px;
-  padding: 4px;
-  min-width: 220px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-  z-index: 100;
-}
-.profile-dropdown-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 10px;
-  font-size: 0.82em;
-  color: var(--txt);
-  cursor: default;
-  border-radius: 6px;
-  transition: all 0.1s;
-  gap: 8px;
-}
-.profile-dropdown-item:hover {
-  background: var(--bg3);
-}
-.profile-dropdown-item.disabled {
-  color: var(--tx3);
-  cursor: default;
-}
-.profile-dropdown-item.disabled:hover {
-  background: transparent;
-}
-.profile-name {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-.profile-name:hover {
-  color: var(--gn);
-}
-.profile-actions {
-  display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-}
-.profile-actions button {
-  background: none;
-  border: none;
-  color: var(--tx3);
-  cursor: pointer;
-  font-size: 0.85em;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all 0.15s;
-}
-.profile-actions button:hover {
-  color: var(--txt);
-  background: var(--bg3);
-}
+/* QUICK PROFILE BUTTONS */
 .profile-quick-btn {
   font-weight: 600;
 }
@@ -1974,12 +1906,6 @@ header h1 {
 .profile-quick-btn[data-profile="Minimal"]:hover {
   background: rgba(191, 90, 242, 0.1);
   border-color: #bf5af2;
-}
-.profile-btn-load:hover {
-  color: var(--gn) !important;
-}
-.profile-btn-del:hover {
-  color: var(--rd) !important;
 }
 
 /* CONTEXT MENU */

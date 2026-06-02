@@ -60,7 +60,7 @@ type App struct {
 }
 
 const (
-	appVersion    = "1.2.1"
+	appVersion    = "1.2.2"
 	githubRepo    = "oscarxdev/CodeWinOptimizer-App"
 	minOpInterval = 2 * time.Second
 )
@@ -109,7 +109,6 @@ func (a *App) startup(ctx context.Context) {
 		wailsRuntime.LogError(ctx, a.tweaksErr.Error())
 		wailsRuntime.EventsEmit(ctx, "log", "[ERR] "+a.tweaksErr.Error()+" — tweaks will be unavailable")
 	}
-	a.ensureDefaultProfiles()
 }
 
 func (a *App) GetSystemLang() string {
@@ -1376,104 +1375,6 @@ Write-Host "[OK] Drivers installed: $ok success, $fail failed"`, folderPath)
 	return strings.TrimSpace(string(output))
 }
 
-/* ========= TWEAK PROFILES ========= */
-
-type TweakProfile struct {
-	Name      string   `json:"name"`
-	Tweaks    []string `json:"tweaks"`
-	CreatedAt string   `json:"createdAt"`
-}
-
-func profilesDir() string {
-	return fmt.Sprintf("%s\\CodeWinOptimizer\\profiles", os.Getenv("USERPROFILE"))
-}
-
-func (a *App) ensureDefaultProfiles() {
-	dir := profilesDir()
-	os.MkdirAll(dir, 0755)
-
-	defaults := map[string][]string{
-		"Standard": {
-			"disable-consumerfeatures",
-			"disable-activity-history",
-			"disable-hibernation",
-			"disable-telemetry",
-			"disable-widgets",
-			"disable-background-apps",
-			"disable-onedrive",
-			"optimize-visual-effects",
-			"disable-news-interests",
-			"disable-advertising-id",
-			"disable-startup-delay",
-			"disable-cortana",
-			"remove-temporary-files",
-			"set-services-manual",
-			"enable-endtask-rightclick",
-		},
-		"Gaming": {
-			"disable-consumerfeatures",
-			"disable-activity-history",
-			"disable-hibernation",
-			"disable-telemetry",
-			"disable-widgets",
-			"disable-background-apps",
-			"disable-onedrive",
-			"optimize-visual-effects",
-			"disable-xbox-gamebar",
-			"fullscreen-optimizations",
-			"disable-hpet",
-			"disable-dynamic-tick",
-			"disable-network-throttling",
-			"set-system-responsiveness-zero",
-			"large-system-cache",
-			"gpu-scheduling",
-			"ultimate-power-plan",
-			"disable-ipv6",
-			"congestion-provider",
-			"disable-compression",
-			"disable-paging-executive",
-			"nvidia-performance",
-		},
-		"Minimal": {
-			"disable-consumerfeatures",
-			"disable-activity-history",
-			"disable-hibernation",
-			"disable-telemetry",
-			"disable-widgets",
-			"disable-background-apps",
-			"disable-onedrive",
-			"optimize-visual-effects",
-			"disable-cortana",
-			"disable-news-interests",
-			"disable-advertising-id",
-			"disable-lockscreen",
-			"disable-startup-delay",
-			"disable-location-tracking",
-			"disable-store-search-results",
-			"disable-notifications",
-			"disable-copilot",
-			"disable-gallery",
-			"disable-home",
-			"remove-bloatware",
-		},
-	}
-
-	for name, tweaks := range defaults {
-		filename := strings.ReplaceAll(name, " ", "_")
-		path := fmt.Sprintf("%s\\%s.json", dir, filename)
-		if _, err := os.Stat(path); os.IsNotExist(err) {
-			profile := TweakProfile{
-				Name:      name,
-				Tweaks:    tweaks,
-				CreatedAt: time.Now().Format(time.RFC3339),
-			}
-			data, _ := json.MarshalIndent(profile, "", "  ")
-			os.WriteFile(path, data, 0644)
-			a.emitLog(fmt.Sprintf("[OK] Default profile created: %s (%d tweaks)", name, len(tweaks)))
-		}
-	}
-}
-
 const (
 	bytesPerGiB      = 1024 * 1024 * 1024
 	secondsPerDay    = 86400
@@ -1483,114 +1384,7 @@ const (
 	bitsPerMegabit   = 1_000_000
 )
 
-var safeProfileName = regexp.MustCompile(`[^a-zA-Z0-9_-]`)
 var safePackageID = regexp.MustCompile(`^[a-zA-Z0-9._-]+$`)
-
-func sanitizeProfileName(name string) (string, error) {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return "", fmt.Errorf("profile name cannot be empty")
-	}
-	safe := safeProfileName.ReplaceAllString(name, "_")
-	safe = filepath.Base(safe)
-	if safe == "." || safe == ".." || safe == "" {
-		return "", fmt.Errorf("invalid profile name: %s", name)
-	}
-	if len(safe) > 64 {
-		safe = safe[:64]
-	}
-	return safe, nil
-}
-
-func (a *App) SaveProfile(name string, tweakIDs []string) string {
-	dir := profilesDir()
-	os.MkdirAll(dir, 0755)
-
-	filename, err := sanitizeProfileName(name)
-	if err != nil {
-		return fmt.Sprintf("[ERR] %v", err)
-	}
-	path := filepath.Join(dir, filename+".json")
-
-	profile := TweakProfile{
-		Name:      name,
-		Tweaks:    tweakIDs,
-		CreatedAt: time.Now().Format(time.RFC3339),
-	}
-
-	data, err := json.MarshalIndent(profile, "", "  ")
-	if err != nil {
-		return fmt.Sprintf("[ERR] Failed to marshal profile: %v", err)
-	}
-
-	if err := os.WriteFile(path, data, 0644); err != nil {
-		return fmt.Sprintf("[ERR] Failed to write profile: %v", err)
-	}
-
-	a.emitLog(fmt.Sprintf("[OK] Profile saved: %s (%d tweaks)", name, len(tweakIDs)))
-	return fmt.Sprintf("[OK] Profile saved: %s", name)
-}
-
-func (a *App) LoadProfile(name string) string {
-	dir := profilesDir()
-	filename, err := sanitizeProfileName(name)
-	if err != nil {
-		return fmt.Sprintf("[ERR] %v", err)
-	}
-	path := filepath.Join(dir, filename+".json")
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Sprintf("[ERR] Profile not found: %s", name)
-	}
-
-	var profile TweakProfile
-	if err := json.Unmarshal(data, &profile); err != nil {
-		return fmt.Sprintf("[ERR] Failed to parse profile: %v", err)
-	}
-
-	result, _ := json.Marshal(profile.Tweaks)
-	a.emitLog(fmt.Sprintf("[OK] Profile loaded: %s (%d tweaks)", name, len(profile.Tweaks)))
-	return string(result)
-}
-
-func (a *App) DeleteProfile(name string) string {
-	dir := profilesDir()
-	filename, err := sanitizeProfileName(name)
-	if err != nil {
-		return fmt.Sprintf("[ERR] %v", err)
-	}
-	path := filepath.Join(dir, filename+".json")
-
-	if err := os.Remove(path); err != nil {
-		return fmt.Sprintf("[ERR] Failed to delete profile: %v", err)
-	}
-
-	a.emitLog(fmt.Sprintf("[OK] Profile deleted: %s", name))
-	return fmt.Sprintf("[OK] Profile deleted: %s", name)
-}
-
-func (a *App) ListProfiles() string {
-	dir := profilesDir()
-	os.MkdirAll(dir, 0755)
-
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return "[]"
-	}
-
-	names := []string{}
-	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".json") {
-			name := strings.TrimSuffix(entry.Name(), ".json")
-			name = strings.ReplaceAll(name, "_", " ")
-			names = append(names, name)
-		}
-	}
-
-	result, _ := json.Marshal(names)
-	return string(result)
-}
 
 func (a *App) GetCurrentDNS() string {
 	script := `try {

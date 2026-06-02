@@ -755,12 +755,6 @@ async function boot() {
     ?.addEventListener("click", loadHealthScore);
   document.getElementById("dns-select")?.addEventListener("change", applyDNS);
   document
-    .getElementById("btn-profile-save")
-    ?.addEventListener("click", showSaveProfileModal);
-  document
-    .getElementById("btn-profile-load")
-    ?.addEventListener("click", toggleProfileMenu);
-  document
     .getElementById("btn-tweaks-clear")
     ?.addEventListener("click", clearTweaksSelection);
   document
@@ -1030,7 +1024,7 @@ function switchTab(tab) {
     .forEach((c) => c.classList.toggle("active", c.id === "tab-" + tab));
   if (tab === "tweaks") {
     drawTweaks();
-    drawProfileMenu();
+    drawTweakActionLabels();
   }
   if (tab === "apps") drawApps();
   if (tab === "restore") {
@@ -1075,7 +1069,7 @@ function drawAll() {
   drawCleanup();
   drawUpdates();
   refreshUI();
-  drawProfileMenu();
+  drawTweakActionLabels();
 }
 
 /* ========= TAB: APPS ========= */
@@ -1727,184 +1721,91 @@ async function checkInstalled() {
   drawApps();
 }
 
-/* ========= TWEAK PROFILES ========= */
+/* ========= TWEAK QUICK PROFILES ========= */
 
-function drawProfileMenu() {
-  const btnLoad = document.getElementById("btn-profile-load-text");
-  const btnSave = document.getElementById("btn-profile-save-text");
+const QUICK_PROFILES = {
+  Standard: [
+    "disable-consumerfeatures",
+    "disable-activity-history",
+    "disable-hibernation",
+    "disable-telemetry",
+    "disable-widgets",
+    "disable-background-apps",
+    "disable-onedrive",
+    "optimize-visual-effects",
+    "disable-news-interests",
+    "disable-advertising-id",
+    "disable-startup-delay",
+    "disable-cortana",
+    "remove-temporary-files",
+    "set-services-manual",
+    "enable-endtask-rightclick",
+  ],
+  Gaming: [
+    "disable-consumerfeatures",
+    "disable-activity-history",
+    "disable-hibernation",
+    "disable-telemetry",
+    "disable-widgets",
+    "disable-background-apps",
+    "disable-onedrive",
+    "optimize-visual-effects",
+    "disable-xbox-gamebar",
+    "fullscreen-optimizations",
+    "disable-hpet",
+    "disable-dynamic-tick",
+    "disable-network-throttling",
+    "set-system-responsiveness-zero",
+    "large-system-cache",
+    "gpu-scheduling",
+    "ultimate-power-plan",
+    "disable-ipv6",
+    "congestion-provider",
+    "disable-compression",
+    "disable-paging-executive",
+    "nvidia-performance",
+  ],
+  Minimal: [
+    "disable-consumerfeatures",
+    "disable-activity-history",
+    "disable-hibernation",
+    "disable-telemetry",
+    "disable-widgets",
+    "disable-background-apps",
+    "disable-onedrive",
+    "optimize-visual-effects",
+    "disable-cortana",
+    "disable-news-interests",
+    "disable-advertising-id",
+    "disable-lockscreen",
+    "disable-startup-delay",
+    "disable-location-tracking",
+    "disable-store-search-results",
+    "disable-notifications",
+    "disable-copilot",
+    "disable-gallery",
+    "disable-home",
+    "remove-bloatware",
+  ],
+};
+
+function drawTweakActionLabels() {
   const btnClear = document.getElementById("btn-tweaks-clear-text");
   const btnSelAll = document.getElementById("btn-tweaks-select-all-text");
-  if (btnLoad) btnLoad.textContent = T("profileLoad");
-  if (btnSave) btnSave.textContent = T("profileSave");
   if (btnClear) btnClear.textContent = T("tweaksClear");
   if (btnSelAll) btnSelAll.textContent = T("tweaksSelectAllGlobal");
 }
 
-async function toggleProfileMenu() {
-  const menu = document.getElementById("profile-menu");
-  if (!menu) return;
-  if (!menu.classList.contains("hidden")) {
-    menu.classList.add("hidden");
+function doLoadProfile(name) {
+  const ids = QUICK_PROFILES[name];
+  if (!ids) {
+    appendLog(`[ERR] Unknown profile: ${name}`);
     return;
   }
-
-  let profiles = [];
-  try {
-    const raw = await window.go.main.App.ListProfiles();
-    profiles = JSON.parse(raw);
-  } catch (e) {
-    console.warn("[Profiles] Failed to list profiles:", e);
-  }
-
-  menu.replaceChildren();
-  if (profiles.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "profile-dropdown-item disabled";
-    empty.textContent = T("profileEmpty");
-    menu.appendChild(empty);
-  } else {
-    profiles.forEach((p) => {
-      const item = document.createElement("div");
-      item.className = "profile-dropdown-item";
-      const name = document.createElement("span");
-      name.className = "profile-name";
-      name.dataset.name = p;
-      name.textContent = p;
-      const acts = document.createElement("span");
-      acts.className = "profile-actions";
-      const loadBtn = document.createElement("button");
-      loadBtn.className = "profile-btn-load";
-      loadBtn.dataset.name = p;
-      loadBtn.title = T("profileLoad");
-      loadBtn.textContent = "▶";
-      const delBtn = document.createElement("button");
-      delBtn.className = "profile-btn-del";
-      delBtn.dataset.name = p;
-      delBtn.title = T("profileDelete");
-      delBtn.textContent = "✕";
-      acts.append(loadBtn, delBtn);
-      item.append(name, acts);
-      menu.appendChild(item);
-    });
-  }
-  menu.classList.remove("hidden");
-
-  // Close on outside click
-  setTimeout(() => {
-    const close = (e) => {
-      if (!menu.contains(e.target) && e.target.id !== "btn-profile-load") {
-        menu.classList.add("hidden");
-        document.removeEventListener("click", close);
-      }
-    };
-    document.addEventListener("click", close);
-  }, 0);
-
-  menu.querySelectorAll(".profile-btn-load").forEach((b) => {
-    b.addEventListener("click", (e) => {
-      e.stopPropagation();
-      doLoadProfile(b.dataset.name);
-      document.getElementById("profile-menu").classList.add("hidden");
-    });
-  });
-  menu.querySelectorAll(".profile-btn-del").forEach((b) => {
-    b.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      if (
-        await showConfirm(
-          T("confirm"),
-          `${T("profileDeleteConfirm")} "${b.dataset.name}"?`,
-        )
-      )
-        doDeleteProfile(b.dataset.name);
-    });
-  });
-}
-
-function showSaveProfileModal() {
-  const existing = document.getElementById("profile-save-modal");
-  if (existing) existing.remove();
-
-  const html = `<div class="startup-modal-overlay" id="profile-save-modal">
-    <div class="startup-modal" style="min-width:340px;max-width:400px">
-      <h3 style="margin:0 0 14px;font-size:1.1em">${T("profileSaveTitle")}</h3>
-      <div style="margin-bottom:16px">
-        <label style="font-size:.8em;color:var(--tx2);display:block;margin-bottom:4px">${T("profileName")}</label>
-        <input type="text" id="profile-save-name" class="rp-name-input" style="width:100%;text-align:left;max-width:100%" placeholder="Gaming, Work, Minimal..." maxlength="32">
-      </div>
-      <div style="font-size:.78em;color:var(--tx3);margin-bottom:16px">${pickedT.size} ${T("profileTweaksSelected")}</div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button id="profile-save-cancel" class="btn-secondary" style="padding:8px 18px;font-size:.82em">${T("profileCancel")}</button>
-        <button id="profile-save-ok" class="btn-primary" style="padding:8px 18px;font-size:.82em">${T("profileSave")}</button>
-      </div>
-    </div>
-  </div>`;
-  document.body.insertAdjacentHTML("beforeend", html);
-
-  document
-    .getElementById("profile-save-cancel")
-    .addEventListener("click", () =>
-      document.getElementById("profile-save-modal").remove(),
-    );
-  document.getElementById("profile-save-ok").addEventListener("click", () => {
-    const name = document.getElementById("profile-save-name").value.trim();
-    if (!name) {
-      appendLog("[WARN] Profile name required");
-      return;
-    }
-    if (pickedT.size === 0) {
-      appendLog("[WARN] No tweaks selected");
-      return;
-    }
-    doSaveProfile(name);
-    document.getElementById("profile-save-modal").remove();
-  });
-  document
-    .getElementById("profile-save-modal")
-    .addEventListener("click", function (e) {
-      if (e.target === this) this.remove();
-    });
-}
-
-async function doSaveProfile(name) {
-  try {
-    const ids = Array.from(pickedT);
-    const r = await window.go.main.App.SaveProfile(name, ids);
-    appendLog(r);
-  } catch (e) {
-    appendLog("[ERR] Save profile failed: " + e);
-  }
-}
-
-async function doLoadProfile(name) {
-  try {
-    const raw = await window.go.main.App.LoadProfile(name);
-    if (raw.startsWith("[ERR]")) {
-      appendLog(raw);
-      return;
-    }
-    const ids = JSON.parse(raw);
-    if (!Array.isArray(ids)) {
-      appendLog("[ERR] Invalid profile data");
-      return;
-    }
-    pickedT = new Set(ids);
-    drawTweaks();
-    refreshUI();
-    appendLog(`[OK] Profile loaded: ${name} (${ids.length} tweaks)`);
-  } catch (e) {
-    appendLog("[ERR] Load profile failed: " + e);
-  }
-}
-
-async function doDeleteProfile(name) {
-  try {
-    const r = await window.go.main.App.DeleteProfile(name);
-    appendLog(r);
-    toggleProfileMenu();
-  } catch (e) {
-    appendLog("[ERR] Delete profile failed: " + e);
-  }
+  pickedT = new Set(ids);
+  drawTweaks();
+  refreshUI();
+  appendLog(`[OK] Profile loaded: ${name} (${ids.length} tweaks)`);
 }
 
 function clearTweaksSelection() {
