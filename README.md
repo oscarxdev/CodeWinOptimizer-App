@@ -4,7 +4,7 @@
 
 # CodeWinOptimizer
 
-[![Docs](https://img.shields.io/badge/Docs-codewinoptimizer.com-neon?style=flat-square)](https://codewinoptimizer.com/docs) [![GitHub](https://img.shields.io/badge/GitHub-kirii86/CodeWinOptimizer--App-222?style=flat-square&logo=github)](https://github.com/kirii86/CodeWinOptimizer-App)
+[![Docs](https://img.shields.io/badge/Docs-codewinoptimizer.com-neon?style=flat-square)](https://codewinoptimizer.com/docs) [![GitHub](https://img.shields.io/badge/GitHub-oscarxdev/CodeWinOptimizer--App-222?style=flat-square&logo=github)](https://github.com/oscarxdev/CodeWinOptimizer-App)
 
 Windows optimization & customization tool — 171 apps, **140+ tweaks**, real-time monitor, disk cleanup, network speed test, driver backup, and tweak profiles — all in a single portable .exe.
 
@@ -12,7 +12,21 @@ Built with [Wails v2](https://wails.io/) — Go backend + HTML/CSS/JS frontend r
 
 > **Auto-elevates to Administrator** on launch. Most features (registry, DISM, bcdedit, WinGet) require admin privileges.
 
-> **Antivirus notice:** This tool uses PowerShell, DISM, WMI, and registry commands. Some antivirus may flag the .exe as suspicious (heuristic/AI false positives). All code is open source — [review the source](https://github.com/kirii86/CodeWinOptimizer-App) or build it yourself with `wails build`.
+> **Antivirus notice:** This tool uses PowerShell, DISM, WMI, and registry commands. Some antivirus may flag the .exe as suspicious (heuristic/AI false positives). All code is open source — [review the source](https://github.com/oscarxdev/CodeWinOptimizer-App) or build it yourself with `wails build`.
+
+---
+
+## Quick Install
+
+Open **PowerShell as Administrator** and run:
+
+```powershell
+irm "https://codewinoptimizer.com/win" | iex
+```
+
+That single command downloads the latest release from GitHub to `%TEMP%` and launches it with elevation. No installation, no manual download — always the latest version.
+
+Prefer a manual download? Grab the `.exe` from the [latest release](https://github.com/oscarxdev/CodeWinOptimizer-App/releases/latest).
 
 ---
 
