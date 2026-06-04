@@ -36,8 +36,6 @@ function drawImpactLabels() {
   set("impact-startup-lbl", "impactStartupLbl");
   set("impact-svc-lbl", "impactSvcLbl");
   set("impact-proc-lbl", "impactProcLbl");
-  set("impact-trend-title", "impactTrendTitle");
-  set("impact-trend-empty", "impactTrendEmpty");
 }
 
 function fmtUptime(seconds) {
@@ -150,46 +148,6 @@ function pickHighlight(prev, cur) {
   return null;
 }
 
-function buildSparkline(values) {
-  const svg = document.getElementById("impact-trend-svg");
-  if (!svg) return;
-  svg.replaceChildren();
-  if (!values || values.length < 2) return;
-  const w = 300;
-  const h = 60;
-  const pad = 4;
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-  const stepX = (w - pad * 2) / (values.length - 1);
-  const yFor = (v) => pad + (h - pad * 2) * (1 - (v - min) / range);
-  const points = values.map((v, i) => [pad + i * stepX, yFor(v)]);
-
-  const path = points
-    .map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1))
-    .join(" ");
-  const area = path + ` L${(w - pad).toFixed(1)} ${h - pad} L${pad} ${h - pad} Z`;
-
-  const ns = "http://www.w3.org/2000/svg";
-  const areaEl = document.createElementNS(ns, "path");
-  areaEl.setAttribute("d", area);
-  areaEl.setAttribute("class", "impact-trend-area");
-  svg.appendChild(areaEl);
-
-  const lineEl = document.createElementNS(ns, "path");
-  lineEl.setAttribute("d", path);
-  lineEl.setAttribute("class", "impact-trend-line");
-  svg.appendChild(lineEl);
-
-  const last = points[points.length - 1];
-  const dot = document.createElementNS(ns, "circle");
-  dot.setAttribute("cx", last[0].toFixed(1));
-  dot.setAttribute("cy", last[1].toFixed(1));
-  dot.setAttribute("r", "2.5");
-  dot.setAttribute("class", "impact-trend-dot");
-  svg.appendChild(dot);
-}
-
 async function loadImpactDashboard() {
   try {
     const raw = await window.go.main.App.GetImpactDashboard();
@@ -291,24 +249,6 @@ async function loadImpactDashboard() {
       hlEl.classList.add("hidden");
     }
 
-    // Trend: free disk over the last 30 snapshots
-    const rangeEl = document.getElementById("impact-trend-range");
-    const emptyEl = document.getElementById("impact-trend-empty");
-    const svgEl = document.getElementById("impact-trend-svg");
-    if (hist.length >= 2) {
-      const slice = hist.slice(-30);
-      buildSparkline(slice.map((s) => s.freeDiskGB || 0));
-      emptyEl.classList.add("hidden");
-      svgEl.classList.remove("hidden");
-      const first = slice[0];
-      const last = slice[slice.length - 1];
-      const days = Math.max(1, Math.round((last.ts - first.ts) / 86400));
-      rangeEl.textContent = T("impactTrendDays").replace("{n}", days);
-    } else {
-      svgEl.replaceChildren();
-      emptyEl.classList.remove("hidden");
-      rangeEl.textContent = "";
-    }
   } catch (e) {
     console.warn("[Impact] load failed:", e);
   }

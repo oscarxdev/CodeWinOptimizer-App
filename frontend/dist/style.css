@@ -2506,53 +2506,6 @@ header h1 {
   font-size: 0.84em;
 }
 
-.impact-trend {
-  background: #0a0a0a;
-  border: 1px solid var(--brd);
-  border-radius: 8px;
-  padding: 12px 14px;
-}
-.impact-trend-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.impact-trend-title {
-  font-size: 0.78em;
-  font-weight: 600;
-  color: var(--tx2);
-}
-.impact-trend-range {
-  font-size: 0.7em;
-  color: var(--tx3);
-  font-variant-numeric: tabular-nums;
-}
-.impact-trend-svg {
-  display: block;
-  width: 100%;
-  height: 60px;
-}
-.impact-trend-svg .impact-trend-line {
-  fill: none;
-  stroke: var(--gn);
-  stroke-width: 1.5;
-}
-.impact-trend-svg .impact-trend-area {
-  fill: var(--gn);
-  fill-opacity: 0.1;
-}
-.impact-trend-svg .impact-trend-dot {
-  fill: var(--gn);
-}
-.impact-trend-empty {
-  font-size: 0.78em;
-  color: var(--tx3);
-  text-align: center;
-  padding: 10px 0;
-  margin-top: 4px;
-}
-
 @media (max-width: 900px) {
   .impact-metrics {
     grid-template-columns: repeat(2, 1fr);
