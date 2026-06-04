@@ -386,6 +386,7 @@ async function boot() {
     .getElementById("btn-run-cleanup")
     .addEventListener("click", doCleanup);
   initMonitorListeners();
+  initStartupListeners();
   document
     .getElementById("btn-tweaks-clear")
     ?.addEventListener("click", clearTweaksSelection);
@@ -615,6 +616,7 @@ function switchTab(tab) {
   }
   if (tab === "cleanup") drawCleanup();
   if (tab === "updates") drawUpdates();
+  if (tab === "startup") drawStartup();
   refreshUI();
 }
 
@@ -628,6 +630,7 @@ function drawAll() {
   drawMonitor();
   drawCleanup();
   drawUpdates();
+  drawStartup();
   refreshUI();
   drawTweakActionLabels();
 }
