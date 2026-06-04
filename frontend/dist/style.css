@@ -2397,10 +2397,11 @@ header h1 {
   font-weight: 600;
 }
 .impact-boot-lbl {
-  font-size: 0.7em;
+  font-size: 0.72em;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: var(--tx2);
+  color: var(--txt);
+  font-weight: 600;
 }
 .impact-boot-meta {
   display: flex;
@@ -2443,10 +2444,11 @@ header h1 {
   gap: 6px;
 }
 .impact-metric-lbl {
-  font-size: 0.66em;
+  font-size: 0.68em;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--tx3);
+  letter-spacing: 0.6px;
+  color: var(--txt);
+  font-weight: 600;
 }
 .impact-metric-arrow {
   font-size: 0.85em;
@@ -2454,15 +2456,15 @@ header h1 {
   line-height: 1;
 }
 .impact-metric-delta {
-  font-size: 1.35em;
+  font-size: 1.45em;
   font-weight: 700;
   line-height: 1.15;
-  color: var(--tx2);
+  color: var(--txt);
   font-variant-numeric: tabular-nums;
 }
 .impact-metric-sub {
-  font-size: 0.7em;
-  color: var(--tx3);
+  font-size: 0.72em;
+  color: var(--tx2);
   font-variant-numeric: tabular-nums;
   margin-top: auto;
 }
@@ -2479,7 +2481,10 @@ header h1 {
   content: "↓";
 }
 .impact-delta-zero {
-  color: var(--tx3);
+  color: var(--tx2);
+}
+.impact-delta-current {
+  color: var(--gn);
 }
 
 .impact-highlight {

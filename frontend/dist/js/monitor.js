@@ -93,31 +93,30 @@ function computeDelta(diff, unit, opts) {
   };
 }
 
+const DELTA_CLASSES = [
+  "impact-delta-pos",
+  "impact-delta-neg",
+  "impact-delta-zero",
+  "impact-delta-current",
+];
+
 function renderMetric(prefix, delta, currentDisplay) {
   const dEl = document.getElementById("impact-" + prefix + "-delta");
   const aEl = document.getElementById("impact-" + prefix + "-arrow");
   const sEl = document.getElementById("impact-" + prefix + "-sub");
 
   if (aEl) {
-    aEl.classList.remove(
-      "impact-delta-pos",
-      "impact-delta-neg",
-      "impact-delta-zero",
-    );
+    aEl.classList.remove(...DELTA_CLASSES);
     aEl.textContent = "";
   }
+  if (dEl) dEl.classList.remove(...DELTA_CLASSES);
 
   // No prior snapshot: the panel still has to feel informative. Promote
-  // the current value into the headline slot and explain why there's no
-  // delta yet in the sub. The delta-first layout kicks in next time.
+  // the current value into the headline slot (in the app accent color)
+  // and explain in the sub. Delta-first layout kicks in next visit.
   if (!delta) {
     if (dEl) {
-      dEl.classList.remove(
-        "impact-delta-pos",
-        "impact-delta-neg",
-        "impact-delta-zero",
-      );
-      dEl.classList.add("impact-delta-zero");
+      dEl.classList.add("impact-delta-current");
       dEl.textContent = currentDisplay;
     }
     if (sEl) sEl.textContent = T("impactFirstReading");
@@ -125,11 +124,6 @@ function renderMetric(prefix, delta, currentDisplay) {
   }
 
   if (dEl) {
-    dEl.classList.remove(
-      "impact-delta-pos",
-      "impact-delta-neg",
-      "impact-delta-zero",
-    );
     dEl.textContent = delta.text;
     dEl.classList.add(delta.cls);
   }

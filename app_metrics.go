@@ -169,15 +169,18 @@ func captureStartupCounts() startupCounts {
 	return c
 }
 
-// shouldPersist returns true if the newest snapshot is older than 12h
-// or doesn't exist. Avoids spamming the history with near-duplicate rows
-// every time the Monitor tab is opened.
+// shouldPersist returns true if the newest snapshot is older than the
+// persist interval or doesn't exist. The interval is short enough that
+// a casual user sees the trend chart populate during day one, but long
+// enough that idly clicking the Monitor tab doesn't flood the history.
+const persistInterval = time.Hour
+
 func shouldPersist(history []ImpactSnapshot, now time.Time) bool {
 	if len(history) == 0 {
 		return true
 	}
 	last := time.Unix(history[len(history)-1].TimestampUnix, 0)
-	return now.Sub(last) >= 12*time.Hour
+	return now.Sub(last) >= persistInterval
 }
 
 // GetImpactDashboard returns the live snapshot plus the persisted history,
