@@ -6,15 +6,30 @@ import (
 	"strings"
 )
 
-// Startup Manager: enumerate and toggle Windows auto-start entries from
-// Run keys (HKLM, HKCU, WOW6432Node) and the user/all-users Startup folders.
+// Startup Manager: enumerate and toggle Windows auto-start entries.
 //
-// Enable/disable uses the same mechanism Task Manager uses:
-// HKLM/HKCU\...\Explorer\StartupApproved\{Run|StartupFolder} — a binary
-// value whose first byte is 0x02 (enabled) or 0x03 (disabled). Bytes 4-11
-// hold a FILETIME marking when the entry was last disabled. Existing
-// entries left untouched in the real Run keys / Startup folders, so the
-// change is fully reversible and visible in Task Manager too.
+// Sources covered:
+//   1. Run keys      — HKLM, HKCU, WOW6432Node \...\CurrentVersion\Run
+//   2. Startup folders — user + all-users
+//   3. AppX/UWP tasks  — Modern apps with windows.startupTask manifest,
+//                        tracked under StartupApproved\StartupTask
+//   4. Scheduled tasks — non-system tasks with LogonTrigger / BootTrigger
+//
+// Enable/disable strategy:
+//   - Run keys + folders + AppX tasks → write StartupApproved binary
+//     (byte 0 = 0x02 enabled / 0x03 disabled, bytes 4-11 = FILETIME).
+//     Same mechanism Task Manager uses — fully reversible, no entries
+//     are moved or deleted from their source location.
+//   - Scheduled tasks → Enable-ScheduledTask / Disable-ScheduledTask.
+//
+// ID schema: pipe-delimited "<scope>|<kind>|<...>".
+//   HKLM|Run|<ValueName>
+//   HKCU|Run|<ValueName>
+//   user|Folder|<FileName>
+//   common|Folder|<FileName>
+//   HKCU|AppxTask|<PackageFamilyName>|<TaskId>
+//   HKLM|AppxTask|<PackageFamilyName>|<TaskId>
+//   -|Task|<TaskPath>|<TaskName>
 
 const psListStartupItems = `
 $ErrorActionPreference = 'SilentlyContinue'
@@ -27,10 +42,11 @@ function Read-Approved($key, $name) {
   return -not ($v[0] -band 0x01)
 }
 
+# --- 1. Run keys ---
 $runLocations = @(
-  @{ Scope = 'HKLM'; RegPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';            Label = 'HKLM Run';        Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run' },
-  @{ Scope = 'HKCU'; RegPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';            Label = 'HKCU Run';        Approved = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run' },
-  @{ Scope = 'HKLM'; RegPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'; Label = 'HKLM Run (x86)';  Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32' }
+  @{ Scope = 'HKLM'; RegPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';            Label = 'HKLM Run';       Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run' },
+  @{ Scope = 'HKCU'; RegPath = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run';            Label = 'HKCU Run';       Approved = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run' },
+  @{ Scope = 'HKLM'; RegPath = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'; Label = 'HKLM Run (x86)'; Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run32' }
 )
 
 foreach ($loc in $runLocations) {
@@ -55,9 +71,10 @@ foreach ($loc in $runLocations) {
   }
 }
 
+# --- 2. Startup folders ---
 $folderLocations = @(
-  @{ Scope = 'user';   Path = [Environment]::GetFolderPath('Startup');       Label = 'User Startup Folder';   Approved = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder' },
-  @{ Scope = 'common'; Path = [Environment]::GetFolderPath('CommonStartup'); Label = 'All Users Startup';     Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder' }
+  @{ Scope = 'user';   Path = [Environment]::GetFolderPath('Startup');       Label = 'User Startup Folder'; Approved = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder' },
+  @{ Scope = 'common'; Path = [Environment]::GetFolderPath('CommonStartup'); Label = 'All Users Startup';   Approved = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder' }
 )
 
 foreach ($f in $folderLocations) {
@@ -81,7 +98,106 @@ foreach ($f in $folderLocations) {
   }
 }
 
-,$items | ConvertTo-Json -Compress -Depth 4
+# --- 3. AppX / UWP startup tasks ---
+# Canonical source is the AppxManifest of every installed package: any
+# <Extension Category="windows.startupTask"> declaration (uap5: or
+# desktop: namespace) registers a startup task. The default enabled
+# state comes from the manifest; a binary override may live in
+# HKCU\...\StartupApproved\StartupTask\<PackageFamilyName>\<TaskId>.
+$appxApprovedKey = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupTask'
+try {
+  $packages = Get-AppxPackage -ErrorAction Stop
+} catch {
+  $packages = @()
+}
+foreach ($pkg in $packages) {
+  if (-not $pkg.InstallLocation) { continue }
+  $manifest = Join-Path $pkg.InstallLocation 'AppxManifest.xml'
+  if (-not (Test-Path $manifest)) { continue }
+  try {
+    $xml = [xml](Get-Content -LiteralPath $manifest -Raw)
+  } catch { continue }
+  $nodes = $xml.SelectNodes("//*[local-name()='Extension' and @Category='windows.startupTask']")
+  if ($null -eq $nodes -or $nodes.Count -eq 0) { continue }
+  foreach ($n in $nodes) {
+    $stNode = $null
+    foreach ($c in $n.ChildNodes) {
+      if ($c.LocalName -eq 'StartupTask') { $stNode = $c; break }
+    }
+    if ($null -eq $stNode) { continue }
+    $taskId = $stNode.TaskId
+    if (-not $taskId) { continue }
+    $manifestDefault = ($stNode.Enabled -eq 'true')
+    $display = $stNode.DisplayName
+    if (-not $display -or $display -like 'ms-resource:*') {
+      $display = ($pkg.Name -split '\.')[-1]
+      if (-not $display) { $display = $pkg.Name }
+    }
+    $enabled = $manifestDefault
+    $pkgApprovedKey = Join-Path $appxApprovedKey $pkg.PackageFamilyName
+    if (Test-Path $pkgApprovedKey) {
+      $v = (Get-ItemProperty -Path $pkgApprovedKey -Name $taskId -ErrorAction SilentlyContinue).$taskId
+      if ($v -is [byte[]] -and $v.Length -gt 0) {
+        $enabled = -not ($v[0] -band 0x01)
+      }
+    }
+    $null = $items.Add([pscustomobject]@{
+      id       = "HKCU|AppxTask|$($pkg.PackageFamilyName)|$taskId"
+      name     = $display
+      command  = "AppX: $($pkg.PackageFamilyName)"
+      location = 'Modern App'
+      source   = 'appx'
+      enabled  = [bool]$enabled
+      type     = 'appx'
+    })
+  }
+}
+
+# --- 4. Scheduled tasks with LogonTrigger / BootTrigger ---
+# Skip Windows internals (\Microsoft\Windows\*) — they are system maintenance
+# and not what the user thinks of as "startup programs". Third-party tasks
+# (Edge updaters, OneDrive, NVIDIA, etc.) live outside that namespace or in
+# a sibling vendor folder and ARE shown.
+try {
+  $tasks = Get-ScheduledTask -ErrorAction Stop
+  foreach ($t in $tasks) {
+    if ($t.TaskPath -like '\Microsoft\Windows\*') { continue }
+    $relevant = $false
+    foreach ($trig in $t.Triggers) {
+      $tn = $trig.CimClass.CimClassName
+      if ($tn -eq 'MSFT_TaskLogonTrigger' -or $tn -eq 'MSFT_TaskBootTrigger') {
+        $relevant = $true; break
+      }
+    }
+    if (-not $relevant) { continue }
+    $cmd = ''
+    if ($t.Actions -and $t.Actions.Count -gt 0) {
+      $a = $t.Actions[0]
+      if ($a.PSObject.Properties['Execute']) {
+        $cmd = [string]$a.Execute
+        if ($a.PSObject.Properties['Arguments'] -and $a.Arguments) {
+          $cmd += ' ' + [string]$a.Arguments
+        }
+      }
+    }
+    $enabled = ($t.State -ne 'Disabled')
+    $taskPath = $t.TaskPath
+    $taskName = $t.TaskName
+    $folderLabel = $taskPath.Trim('\')
+    $locLabel = if ($folderLabel) { "Scheduled Task ($folderLabel)" } else { 'Scheduled Task' }
+    $null = $items.Add([pscustomobject]@{
+      id       = "-|Task|$taskPath|$taskName"
+      name     = $taskName
+      command  = $cmd
+      location = $locLabel
+      source   = 'task'
+      enabled  = [bool]$enabled
+      type     = 'task'
+    })
+  }
+} catch { }
+
+,$items | ConvertTo-Json -Compress -Depth 5
 `
 
 const psSetStartupItem = `
@@ -90,32 +206,59 @@ try {
   $id = $env:CWO_STARTUP_ID
   $enabled = ($env:CWO_STARTUP_ENABLED -eq '1')
   if (-not $id) { 'ERR: missing id'; exit }
-  $parts = $id -split '\|', 3
+  $parts = $id -split '\|'
   if ($parts.Count -lt 3) { 'ERR: bad id'; exit }
-  $scope = $parts[0]; $kind = $parts[1]; $name = $parts[2]
+  $scope = $parts[0]; $kind = $parts[1]
 
-  $approvedKey = $null
-  if ($kind -eq 'Run') {
-    if ($scope -eq 'HKLM') {
-      $approvedKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
-    } elseif ($scope -eq 'HKCU') {
-      $approvedKey = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
-    }
-  } elseif ($kind -eq 'Folder') {
-    if ($scope -eq 'common') {
-      $approvedKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
-    } elseif ($scope -eq 'user') {
-      $approvedKey = 'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
-    }
+  function Write-Approved($key, $name, $enabled) {
+    if (-not (Test-Path $key)) { New-Item -Path $key -Force | Out-Null }
+    $bytes = New-Object byte[] 12
+    $bytes[0] = if ($enabled) { 0x02 } else { 0x03 }
+    $ft = [BitConverter]::GetBytes((Get-Date).ToFileTime())
+    [Array]::Copy($ft, 0, $bytes, 4, 8)
+    Set-ItemProperty -Path $key -Name $name -Value $bytes -Type Binary -Force
   }
-  if (-not $approvedKey) { 'ERR: unknown scope/kind'; exit }
-  if (-not (Test-Path $approvedKey)) { New-Item -Path $approvedKey -Force | Out-Null }
 
-  $bytes = New-Object byte[] 12
-  $bytes[0] = if ($enabled) { 0x02 } else { 0x03 }
-  $ft = [BitConverter]::GetBytes((Get-Date).ToFileTime())
-  [Array]::Copy($ft, 0, $bytes, 4, 8)
-  Set-ItemProperty -Path $approvedKey -Name $name -Value $bytes -Type Binary -Force
+  if ($kind -eq 'Run') {
+    $name = ($parts[2..($parts.Count - 1)] -join '|')
+    $approvedKey = if ($scope -eq 'HKLM') {
+      'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
+    } else {
+      'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
+    }
+    Write-Approved $approvedKey $name $enabled
+  }
+  elseif ($kind -eq 'Folder') {
+    $name = ($parts[2..($parts.Count - 1)] -join '|')
+    $approvedKey = if ($scope -eq 'common') {
+      'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
+    } else {
+      'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
+    }
+    Write-Approved $approvedKey $name $enabled
+  }
+  elseif ($kind -eq 'AppxTask') {
+    if ($parts.Count -lt 4) { 'ERR: bad appx id'; exit }
+    $pkg = $parts[2]; $taskId = $parts[3]
+    $rootKey = if ($scope -eq 'HKLM') {
+      'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupTask'
+    } else {
+      'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupTask'
+    }
+    $pkgKey = Join-Path $rootKey $pkg
+    Write-Approved $pkgKey $taskId $enabled
+  }
+  elseif ($kind -eq 'Task') {
+    if ($parts.Count -lt 4) { 'ERR: bad task id'; exit }
+    $taskPath = $parts[2]; $taskName = $parts[3]
+    $task = Get-ScheduledTask -TaskPath $taskPath -TaskName $taskName -ErrorAction Stop
+    if ($enabled) { $task | Enable-ScheduledTask | Out-Null }
+    else          { $task | Disable-ScheduledTask | Out-Null }
+  }
+  else {
+    'ERR: unknown kind ' + $kind; exit
+  }
+
   if ($enabled) { 'OK: enabled' } else { 'OK: disabled' }
 } catch {
   'ERR: ' + $_.Exception.Message
@@ -137,8 +280,8 @@ func (a *App) GetStartupItems() string {
 	return s
 }
 
-// SetStartupItemEnabled toggles the StartupApproved entry for the given id.
-// id format: "<scope>|<kind>|<name>"  e.g. "HKLM|Run|OneDrive" or "user|Folder|MyScript.lnk".
+// SetStartupItemEnabled toggles the given startup entry.
+// id format: "<scope>|<kind>|<...>" — see psSetStartupItem.
 func (a *App) SetStartupItemEnabled(id string, enabled bool) string {
 	if err := a.rateLimit("SetStartupItemEnabled"); err != nil {
 		return "ERR: " + err.Error()
