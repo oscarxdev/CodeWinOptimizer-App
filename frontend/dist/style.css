@@ -2391,6 +2391,11 @@ header h1 {
   color: var(--yl);
   font-variant-numeric: tabular-nums;
 }
+.impact-boot-num.impact-boot-num-soft {
+  color: var(--tx2);
+  font-size: 1.3em;
+  font-weight: 600;
+}
 .impact-boot-lbl {
   font-size: 0.7em;
   text-transform: uppercase;

@@ -93,10 +93,37 @@ function computeDelta(diff, unit, opts) {
   };
 }
 
-function renderMetric(prefix, delta, subText) {
+function renderMetric(prefix, delta, currentDisplay) {
   const dEl = document.getElementById("impact-" + prefix + "-delta");
   const aEl = document.getElementById("impact-" + prefix + "-arrow");
   const sEl = document.getElementById("impact-" + prefix + "-sub");
+
+  if (aEl) {
+    aEl.classList.remove(
+      "impact-delta-pos",
+      "impact-delta-neg",
+      "impact-delta-zero",
+    );
+    aEl.textContent = "";
+  }
+
+  // No prior snapshot: the panel still has to feel informative. Promote
+  // the current value into the headline slot and explain why there's no
+  // delta yet in the sub. The delta-first layout kicks in next time.
+  if (!delta) {
+    if (dEl) {
+      dEl.classList.remove(
+        "impact-delta-pos",
+        "impact-delta-neg",
+        "impact-delta-zero",
+      );
+      dEl.classList.add("impact-delta-zero");
+      dEl.textContent = currentDisplay;
+    }
+    if (sEl) sEl.textContent = T("impactFirstReading");
+    return;
+  }
+
   if (dEl) {
     dEl.classList.remove(
       "impact-delta-pos",
@@ -106,16 +133,8 @@ function renderMetric(prefix, delta, subText) {
     dEl.textContent = delta.text;
     dEl.classList.add(delta.cls);
   }
-  if (aEl) {
-    aEl.classList.remove(
-      "impact-delta-pos",
-      "impact-delta-neg",
-      "impact-delta-zero",
-    );
-    aEl.textContent = "";
-    if (delta.dir !== 0) aEl.classList.add(delta.cls);
-  }
-  if (sEl) sEl.textContent = subText;
+  if (aEl && delta.dir !== 0) aEl.classList.add(delta.cls);
+  if (sEl) sEl.textContent = T("impactNow") + " " + currentDisplay;
 }
 
 function pickHighlight(prev, cur) {
@@ -188,12 +207,16 @@ async function loadImpactDashboard() {
     const cur = d.current || {};
     const hist = Array.isArray(d.history) ? d.history : [];
 
-    // Boot hero — only metric not covered by existing Monitor cards.
+    // Boot hero. Two states:
+    //   - Diagnostic captured  → big duration in seconds + main-path detail
+    //   - Not yet captured     → promote the boot date so the card has
+    //                            content; explain in the note slot.
     const bootBlock = document.getElementById("impact-boot-block");
+    const bootNum = document.getElementById("impact-boot-num");
+    bootBlock.classList.remove("hidden");
     if (cur.bootDurationMs && cur.bootDurationMs > 0) {
-      bootBlock.classList.remove("hidden");
-      document.getElementById("impact-boot-num").textContent =
-        (cur.bootDurationMs / 1000).toFixed(1) + " s";
+      bootNum.textContent = (cur.bootDurationMs / 1000).toFixed(1) + " s";
+      bootNum.classList.remove("impact-boot-num-soft");
       const mainSec = cur.bootMainPathMs
         ? (cur.bootMainPathMs / 1000).toFixed(1) + " s"
         : "--";
@@ -201,9 +224,10 @@ async function loadImpactDashboard() {
         T("impactBootMain") + ": " + mainSec;
       document.getElementById("impact-boot-note").textContent = "";
     } else {
-      document.getElementById("impact-boot-num").textContent = "—";
+      bootNum.textContent = fmtBootDate(cur.lastBootTs);
+      bootNum.classList.add("impact-boot-num-soft");
       document.getElementById("impact-boot-detail").textContent =
-        T("impactBootedAt") + " " + fmtBootDate(cur.lastBootTs);
+        T("impactBootedAt");
       document.getElementById("impact-boot-note").textContent =
         T("impactBootUnavailable");
     }
@@ -222,8 +246,8 @@ async function loadImpactDashboard() {
             decimals: 1,
             eps: 0.05,
           })
-        : { text: "—", cls: "impact-delta-zero", dir: 0 },
-      T("impactNow") + " " + (cur.freeDiskGB || 0).toFixed(1) + " GB",
+        : null,
+      (cur.freeDiskGB || 0).toFixed(1) + " GB",
     );
 
     renderMetric(
@@ -234,12 +258,8 @@ async function loadImpactDashboard() {
             decimals: 0,
             eps: 0.5,
           })
-        : { text: "—", cls: "impact-delta-zero", dir: 0 },
-      T("impactNow") +
-        " " +
-        (cur.startupEnabled || 0) +
-        " / " +
-        (cur.startupTotal || 0),
+        : null,
+      (cur.startupEnabled || 0) + " / " + (cur.startupTotal || 0),
     );
 
     renderMetric(
@@ -250,8 +270,8 @@ async function loadImpactDashboard() {
             decimals: 0,
             eps: 0.5,
           })
-        : { text: "—", cls: "impact-delta-zero", dir: 0 },
-      T("impactNow") + " " + (cur.servicesRunning || 0),
+        : null,
+      String(cur.servicesRunning || 0),
     );
 
     renderMetric(
@@ -262,8 +282,8 @@ async function loadImpactDashboard() {
             decimals: 0,
             eps: 0.5,
           })
-        : { text: "—", cls: "impact-delta-zero", dir: 0 },
-      T("impactNow") + " " + (cur.processCount || 0),
+        : null,
+      String(cur.processCount || 0),
     );
 
     // Highlight banner — only when there's a meaningful win to surface.
