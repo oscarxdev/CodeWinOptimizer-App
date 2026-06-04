@@ -575,6 +575,66 @@
       </div>
 
       <div class="tab-content" id="tab-monitor">
+        <div id="impact-panel" class="impact-panel">
+          <div class="impact-head">
+            <div class="impact-head-text">
+              <h2 id="impact-title">Impacto</h2>
+              <p id="impact-sub">Como evoluciona tu sistema con el tiempo.</p>
+            </div>
+            <div class="impact-stamp">
+              <span class="impact-stamp-label" id="impact-stamp-label">Ultima medicion</span>
+              <span class="impact-stamp-val" id="impact-stamp-val">--</span>
+            </div>
+          </div>
+
+          <div class="impact-hero">
+            <div class="impact-hero-uptime">
+              <span class="impact-hero-num" id="impact-uptime-num">--</span>
+              <span class="impact-hero-lbl" id="impact-uptime-lbl">Tiempo encendido</span>
+              <span class="impact-hero-sub" id="impact-boot-sub">--</span>
+            </div>
+            <div class="impact-hero-boot" id="impact-boot-block">
+              <span class="impact-hero-num" id="impact-boot-num">--</span>
+              <span class="impact-hero-lbl" id="impact-boot-lbl">Tiempo de arranque</span>
+              <span class="impact-hero-sub" id="impact-boot-detail">--</span>
+            </div>
+          </div>
+
+          <div class="impact-metrics">
+            <div class="impact-metric">
+              <span class="impact-metric-lbl" id="impact-disk-lbl">Disco libre</span>
+              <span class="impact-metric-val" id="impact-disk-val">--</span>
+              <span class="impact-metric-delta" id="impact-disk-delta">--</span>
+            </div>
+            <div class="impact-metric">
+              <span class="impact-metric-lbl" id="impact-ram-lbl">RAM libre</span>
+              <span class="impact-metric-val" id="impact-ram-val">--</span>
+              <span class="impact-metric-delta" id="impact-ram-delta">--</span>
+            </div>
+            <div class="impact-metric">
+              <span class="impact-metric-lbl" id="impact-startup-lbl">Programas de inicio</span>
+              <span class="impact-metric-val" id="impact-startup-val">--</span>
+              <span class="impact-metric-delta" id="impact-startup-delta">--</span>
+            </div>
+            <div class="impact-metric">
+              <span class="impact-metric-lbl" id="impact-svc-lbl">Servicios activos</span>
+              <span class="impact-metric-val" id="impact-svc-val">--</span>
+              <span class="impact-metric-delta" id="impact-svc-delta">--</span>
+            </div>
+          </div>
+
+          <div class="impact-trend">
+            <div class="impact-trend-head">
+              <span class="impact-trend-title" id="impact-trend-title">Tendencia</span>
+              <span class="impact-trend-range" id="impact-trend-range">--</span>
+            </div>
+            <svg id="impact-trend-svg" class="impact-trend-svg" viewBox="0 0 300 60" preserveAspectRatio="none"></svg>
+            <p class="impact-trend-empty hidden" id="impact-trend-empty">
+              Aun no hay historial suficiente. Vuelve manana para ver tu progreso.
+            </p>
+          </div>
+        </div>
+
         <div id="health-score-panel" class="health-panel hidden">
           <div class="health-ring">
             <svg viewBox="0 0 120 120" class="health-svg">

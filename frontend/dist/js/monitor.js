@@ -14,9 +14,241 @@ function drawMonitor() {
   document.getElementById("mon-network-title").textContent = T("monNetwork");
   document.getElementById("btn-speedtest-text").textContent = T("runSpeedTest");
   document.getElementById("dns-title").textContent = T("dnsTitle");
+  drawImpactLabels();
   fetchMonitor();
   fetchNetworkLatency();
   fetchCurrentDNS();
+  loadImpactDashboard();
+}
+
+/* ----- Impact Dashboard ----- */
+
+function drawImpactLabels() {
+  const set = (id, key) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = T(key);
+  };
+  set("impact-title", "impactTitle");
+  set("impact-sub", "impactSub");
+  set("impact-stamp-label", "impactStampLabel");
+  set("impact-uptime-lbl", "impactUptimeLbl");
+  set("impact-boot-lbl", "impactBootLbl");
+  set("impact-disk-lbl", "impactDiskLbl");
+  set("impact-ram-lbl", "impactRamLbl");
+  set("impact-startup-lbl", "impactStartupLbl");
+  set("impact-svc-lbl", "impactSvcLbl");
+  set("impact-trend-title", "impactTrendTitle");
+  set("impact-trend-empty", "impactTrendEmpty");
+}
+
+function fmtUptime(seconds) {
+  if (!seconds || seconds < 0) return "--";
+  const d = Math.floor(seconds / 86400);
+  const h = Math.floor((seconds % 86400) / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h ${m}m`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+function fmtRelative(unixTs) {
+  if (!unixTs) return "--";
+  const diffSec = Math.max(0, Math.floor(Date.now() / 1000 - unixTs));
+  if (diffSec < 60) return T("impactJustNow");
+  if (diffSec < 3600) return Math.floor(diffSec / 60) + " min";
+  if (diffSec < 86400) return Math.floor(diffSec / 3600) + " h";
+  return Math.floor(diffSec / 86400) + " d";
+}
+
+function fmtBootDate(unixTs) {
+  if (!unixTs) return "--";
+  const d = new Date(unixTs * 1000);
+  return d.toLocaleString(lang === "es" ? "es-ES" : "en-US", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function fmtDelta(diff, unit, opts) {
+  opts = opts || {};
+  if (diff === null || diff === undefined || !isFinite(diff)) return "—";
+  const goodUp = opts.goodUp !== false;
+  const eps = opts.eps || 0.01;
+  const abs = Math.abs(diff);
+  if (abs < eps) {
+    return Object.assign({ text: "—", cls: "impact-delta-zero" });
+  }
+  const sign = diff > 0 ? "+" : "−";
+  const txt = sign + abs.toFixed(opts.decimals != null ? opts.decimals : 1) + (unit || "");
+  const positiveDir = diff > 0 ? goodUp : !goodUp;
+  return { text: txt, cls: positiveDir ? "impact-delta-pos" : "impact-delta-neg" };
+}
+
+function applyDelta(elId, deltaObj) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.classList.remove(
+    "impact-delta-pos",
+    "impact-delta-neg",
+    "impact-delta-zero",
+  );
+  if (typeof deltaObj === "string") {
+    el.textContent = deltaObj;
+    el.classList.add("impact-delta-zero");
+    return;
+  }
+  el.textContent = deltaObj.text;
+  el.classList.add(deltaObj.cls);
+}
+
+function buildSparkline(values) {
+  const svg = document.getElementById("impact-trend-svg");
+  if (!svg) return;
+  svg.replaceChildren();
+  if (!values || values.length < 2) return;
+  const w = 300;
+  const h = 60;
+  const pad = 4;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const stepX = (w - pad * 2) / (values.length - 1);
+  const yFor = (v) => pad + (h - pad * 2) * (1 - (v - min) / range);
+  const points = values.map((v, i) => [pad + i * stepX, yFor(v)]);
+
+  const path = points
+    .map((p, i) => (i === 0 ? "M" : "L") + p[0].toFixed(1) + " " + p[1].toFixed(1))
+    .join(" ");
+  const area = path + ` L${(w - pad).toFixed(1)} ${h - pad} L${pad} ${h - pad} Z`;
+
+  const ns = "http://www.w3.org/2000/svg";
+  const areaEl = document.createElementNS(ns, "path");
+  areaEl.setAttribute("d", area);
+  areaEl.setAttribute("class", "impact-trend-area");
+  svg.appendChild(areaEl);
+
+  const lineEl = document.createElementNS(ns, "path");
+  lineEl.setAttribute("d", path);
+  lineEl.setAttribute("class", "impact-trend-line");
+  svg.appendChild(lineEl);
+
+  const last = points[points.length - 1];
+  const dot = document.createElementNS(ns, "circle");
+  dot.setAttribute("cx", last[0].toFixed(1));
+  dot.setAttribute("cy", last[1].toFixed(1));
+  dot.setAttribute("r", "2.5");
+  dot.setAttribute("class", "impact-trend-dot");
+  svg.appendChild(dot);
+}
+
+async function loadImpactDashboard() {
+  try {
+    const raw = await window.go.main.App.GetImpactDashboard();
+    const d = JSON.parse(raw);
+    if (d.error) {
+      console.warn("[Impact]", d.error);
+      return;
+    }
+    const cur = d.current || {};
+    const hist = Array.isArray(d.history) ? d.history : [];
+
+    // Hero
+    document.getElementById("impact-uptime-num").textContent = fmtUptime(cur.uptimeSec);
+    document.getElementById("impact-boot-sub").textContent =
+      T("impactBootedAt") + " " + fmtBootDate(cur.lastBootTs);
+
+    const bootBlock = document.getElementById("impact-boot-block");
+    if (cur.bootDurationMs && cur.bootDurationMs > 0) {
+      bootBlock.classList.remove("hidden");
+      document.getElementById("impact-boot-num").textContent =
+        (cur.bootDurationMs / 1000).toFixed(1) + " s";
+      const mainSec = cur.bootMainPathMs
+        ? (cur.bootMainPathMs / 1000).toFixed(1) + " s"
+        : "--";
+      document.getElementById("impact-boot-detail").textContent =
+        T("impactBootMain") + ": " + mainSec;
+    } else {
+      document.getElementById("impact-boot-num").textContent = "—";
+      document.getElementById("impact-boot-detail").textContent =
+        T("impactBootUnavailable");
+    }
+
+    // Stamp
+    document.getElementById("impact-stamp-val").textContent =
+      T("impactAgo") + " " + fmtRelative(cur.ts);
+
+    // Reference for deltas: the snapshot immediately preceding current (excluding the current itself)
+    let prev = null;
+    if (hist.length >= 2) prev = hist[hist.length - 2];
+
+    document.getElementById("impact-disk-val").textContent =
+      (cur.freeDiskGB || 0).toFixed(1) + " GB";
+    applyDelta(
+      "impact-disk-delta",
+      prev ? fmtDelta(cur.freeDiskGB - prev.freeDiskGB, " GB", { goodUp: true, decimals: 1 }) : "—",
+    );
+
+    document.getElementById("impact-ram-val").textContent =
+      ((cur.freeRamMB || 0) / 1024).toFixed(1) + " GB";
+    applyDelta(
+      "impact-ram-delta",
+      prev
+        ? fmtDelta((cur.freeRamMB - prev.freeRamMB) / 1024, " GB", { goodUp: true, decimals: 1 })
+        : "—",
+    );
+
+    document.getElementById("impact-startup-val").textContent =
+      (cur.startupEnabled || 0) + " / " + (cur.startupTotal || 0);
+    applyDelta(
+      "impact-startup-delta",
+      prev
+        ? fmtDelta(cur.startupEnabled - prev.startupEnabled, "", {
+            goodUp: false,
+            decimals: 0,
+            eps: 0.5,
+          })
+        : "—",
+    );
+
+    document.getElementById("impact-svc-val").textContent = cur.servicesRunning || 0;
+    applyDelta(
+      "impact-svc-delta",
+      prev
+        ? fmtDelta(cur.servicesRunning - prev.servicesRunning, "", {
+            goodUp: false,
+            decimals: 0,
+            eps: 0.5,
+          })
+        : "—",
+    );
+
+    // Trend: free disk over the last 30 snapshots
+    const rangeEl = document.getElementById("impact-trend-range");
+    const emptyEl = document.getElementById("impact-trend-empty");
+    const svgEl = document.getElementById("impact-trend-svg");
+    if (hist.length >= 2) {
+      const slice = hist.slice(-30);
+      buildSparkline(slice.map((s) => s.freeDiskGB || 0));
+      emptyEl.classList.add("hidden");
+      svgEl.classList.remove("hidden");
+      const first = slice[0];
+      const last = slice[slice.length - 1];
+      const days = Math.max(
+        1,
+        Math.round((last.ts - first.ts) / 86400),
+      );
+      rangeEl.textContent = T("impactTrendDays").replace("{n}", days);
+    } else {
+      svgEl.replaceChildren();
+      emptyEl.classList.remove("hidden");
+      rangeEl.textContent = "";
+    }
+  } catch (e) {
+    console.warn("[Impact] load failed:", e);
+  }
 }
 
 async function fetchMonitor() {

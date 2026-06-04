@@ -2316,6 +2316,192 @@ header h1 {
   box-shadow: 0 0 14px rgba(255, 51, 51, 0.25);
 }
 
+/* IMPACT DASHBOARD (Monitor tab) */
+.impact-panel {
+  background: linear-gradient(180deg, #131313 0%, #0d0d0d 100%);
+  border: 1px solid var(--brd);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.impact-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gn), transparent);
+  opacity: 0.6;
+}
+.impact-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.impact-head-text h2 {
+  font-size: 1.05em;
+  font-weight: 600;
+  margin: 0;
+}
+.impact-head-text p {
+  color: var(--tx2);
+  font-size: 0.78em;
+  margin-top: 2px;
+}
+.impact-stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-size: 0.72em;
+}
+.impact-stamp-label {
+  color: var(--tx3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85em;
+}
+.impact-stamp-val {
+  color: var(--tx2);
+  margin-top: 2px;
+}
+
+.impact-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.impact-hero-uptime,
+.impact-hero-boot {
+  background: #0a0a0a;
+  border: 1px solid var(--brd);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.impact-hero-num {
+  font-size: 1.8em;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--gn);
+  font-variant-numeric: tabular-nums;
+}
+.impact-hero-boot .impact-hero-num {
+  color: var(--yl);
+}
+.impact-hero-lbl {
+  font-size: 0.7em;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--tx2);
+}
+.impact-hero-sub {
+  font-size: 0.74em;
+  color: var(--tx3);
+  margin-top: 2px;
+}
+
+.impact-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.impact-metric {
+  background: #0a0a0a;
+  border: 1px solid var(--brd);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.impact-metric-lbl {
+  font-size: 0.68em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--tx3);
+}
+.impact-metric-val {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--txt);
+  font-variant-numeric: tabular-nums;
+}
+.impact-metric-delta {
+  font-size: 0.72em;
+  color: var(--tx3);
+  font-variant-numeric: tabular-nums;
+  margin-top: 2px;
+}
+.impact-delta-pos {
+  color: var(--gn);
+}
+.impact-delta-neg {
+  color: var(--rd);
+}
+.impact-delta-zero {
+  color: var(--tx3);
+}
+
+.impact-trend {
+  background: #0a0a0a;
+  border: 1px solid var(--brd);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.impact-trend-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.impact-trend-title {
+  font-size: 0.78em;
+  font-weight: 600;
+  color: var(--tx2);
+}
+.impact-trend-range {
+  font-size: 0.7em;
+  color: var(--tx3);
+  font-variant-numeric: tabular-nums;
+}
+.impact-trend-svg {
+  display: block;
+  width: 100%;
+  height: 60px;
+}
+.impact-trend-svg .impact-trend-line {
+  fill: none;
+  stroke: var(--gn);
+  stroke-width: 1.5;
+}
+.impact-trend-svg .impact-trend-area {
+  fill: var(--gn);
+  fill-opacity: 0.1;
+}
+.impact-trend-svg .impact-trend-dot {
+  fill: var(--gn);
+}
+.impact-trend-empty {
+  font-size: 0.78em;
+  color: var(--tx3);
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .impact-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* STARTUP TAB */
 .startup-header {
   display: flex;
