@@ -1,6 +1,18 @@
 /* ========= TAB: UPDATES ========= */
+function setText(id, key) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = T(key);
+}
+
 function drawUpdates() {
   document.getElementById("tab-updates-label").textContent = T("tabUpdates");
+
+  setText("updates-section-title", "updatesSectionTitle");
+  setText("updates-section-sub", "updatesSectionSub");
+
+  setText("update-default-badge", "updateBadgeDefault");
+  setText("update-security-badge", "updateBadgeRecommended");
+  setText("update-disable-badge", "updateBadgeDanger");
 
   document.getElementById("btn-update-default-text").textContent =
     T("updateDefaultBtn");
@@ -34,6 +46,14 @@ function drawUpdates() {
   });
   document.getElementById("update-security-note").textContent =
     T("updateSecurityNote");
+
+  const infoFeature = document.getElementById("update-info-feature-text");
+  const infoSecurity = document.getElementById("update-info-security-text");
+  if (infoFeature) infoFeature.textContent = T("updateInfoFeatureText");
+  if (infoSecurity) infoSecurity.textContent = T("updateInfoSecurityText");
+  const infoTags = document.querySelectorAll(".update-info-tag");
+  if (infoTags[0]) infoTags[0].textContent = T("updateInfoFeatureLabel");
+  if (infoTags[1]) infoTags[1].textContent = T("updateInfoSecurityLabel");
 
   document.getElementById("btn-update-disable-text").textContent =
     T("updateDisableBtn");
