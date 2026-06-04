@@ -587,40 +587,55 @@
             </div>
           </div>
 
-          <div class="impact-hero">
-            <div class="impact-hero-uptime">
-              <span class="impact-hero-num" id="impact-uptime-num">--</span>
-              <span class="impact-hero-lbl" id="impact-uptime-lbl">Tiempo encendido</span>
-              <span class="impact-hero-sub" id="impact-boot-sub">--</span>
+          <div class="impact-boot-hero" id="impact-boot-block">
+            <div class="impact-boot-main">
+              <span class="impact-boot-num" id="impact-boot-num">—</span>
+              <span class="impact-boot-lbl" id="impact-boot-lbl">Tiempo de arranque</span>
             </div>
-            <div class="impact-hero-boot" id="impact-boot-block">
-              <span class="impact-hero-num" id="impact-boot-num">--</span>
-              <span class="impact-hero-lbl" id="impact-boot-lbl">Tiempo de arranque</span>
-              <span class="impact-hero-sub" id="impact-boot-detail">--</span>
+            <div class="impact-boot-meta">
+              <span class="impact-boot-detail" id="impact-boot-detail">—</span>
+              <span class="impact-boot-note" id="impact-boot-note"></span>
             </div>
           </div>
 
           <div class="impact-metrics">
             <div class="impact-metric">
-              <span class="impact-metric-lbl" id="impact-disk-lbl">Disco libre</span>
-              <span class="impact-metric-val" id="impact-disk-val">--</span>
-              <span class="impact-metric-delta" id="impact-disk-delta">--</span>
+              <div class="impact-metric-head">
+                <span class="impact-metric-lbl" id="impact-disk-lbl">Disco libre</span>
+                <span class="impact-metric-arrow" id="impact-disk-arrow"></span>
+              </div>
+              <span class="impact-metric-delta" id="impact-disk-delta">—</span>
+              <span class="impact-metric-sub" id="impact-disk-sub">—</span>
             </div>
             <div class="impact-metric">
-              <span class="impact-metric-lbl" id="impact-ram-lbl">RAM libre</span>
-              <span class="impact-metric-val" id="impact-ram-val">--</span>
-              <span class="impact-metric-delta" id="impact-ram-delta">--</span>
+              <div class="impact-metric-head">
+                <span class="impact-metric-lbl" id="impact-startup-lbl">Programas de inicio</span>
+                <span class="impact-metric-arrow" id="impact-startup-arrow"></span>
+              </div>
+              <span class="impact-metric-delta" id="impact-startup-delta">—</span>
+              <span class="impact-metric-sub" id="impact-startup-sub">—</span>
             </div>
             <div class="impact-metric">
-              <span class="impact-metric-lbl" id="impact-startup-lbl">Programas de inicio</span>
-              <span class="impact-metric-val" id="impact-startup-val">--</span>
-              <span class="impact-metric-delta" id="impact-startup-delta">--</span>
+              <div class="impact-metric-head">
+                <span class="impact-metric-lbl" id="impact-svc-lbl">Servicios activos</span>
+                <span class="impact-metric-arrow" id="impact-svc-arrow"></span>
+              </div>
+              <span class="impact-metric-delta" id="impact-svc-delta">—</span>
+              <span class="impact-metric-sub" id="impact-svc-sub">—</span>
             </div>
             <div class="impact-metric">
-              <span class="impact-metric-lbl" id="impact-svc-lbl">Servicios activos</span>
-              <span class="impact-metric-val" id="impact-svc-val">--</span>
-              <span class="impact-metric-delta" id="impact-svc-delta">--</span>
+              <div class="impact-metric-head">
+                <span class="impact-metric-lbl" id="impact-proc-lbl">Procesos</span>
+                <span class="impact-metric-arrow" id="impact-proc-arrow"></span>
+              </div>
+              <span class="impact-metric-delta" id="impact-proc-delta">—</span>
+              <span class="impact-metric-sub" id="impact-proc-sub">—</span>
             </div>
+          </div>
+
+          <div class="impact-highlight hidden" id="impact-highlight">
+            <span class="impact-highlight-icon">✦</span>
+            <span class="impact-highlight-text" id="impact-highlight-text"></span>
           </div>
 
           <div class="impact-trend">

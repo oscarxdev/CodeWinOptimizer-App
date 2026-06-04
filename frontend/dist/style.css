@@ -2368,49 +2368,58 @@ header h1 {
   margin-top: 2px;
 }
 
-.impact-hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.impact-hero-uptime,
-.impact-hero-boot {
+.impact-boot-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   background: #0a0a0a;
   border: 1px solid var(--brd);
   border-radius: 10px;
   padding: 16px 18px;
+  margin-bottom: 14px;
+}
+.impact-boot-main {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
-.impact-hero-num {
+.impact-boot-num {
   font-size: 1.8em;
   font-weight: 700;
   line-height: 1.1;
-  color: var(--gn);
+  color: var(--yl);
   font-variant-numeric: tabular-nums;
 }
-.impact-hero-boot .impact-hero-num {
-  color: var(--yl);
-}
-.impact-hero-lbl {
+.impact-boot-lbl {
   font-size: 0.7em;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--tx2);
 }
-.impact-hero-sub {
-  font-size: 0.74em;
+.impact-boot-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  text-align: right;
+}
+.impact-boot-detail {
+  font-size: 0.78em;
+  color: var(--tx2);
+  font-variant-numeric: tabular-nums;
+}
+.impact-boot-note {
+  font-size: 0.7em;
   color: var(--tx3);
-  margin-top: 2px;
+  font-style: italic;
 }
 
 .impact-metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .impact-metric {
   background: #0a0a0a;
@@ -2419,34 +2428,72 @@ header h1 {
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  min-height: 88px;
+}
+.impact-metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
 }
 .impact-metric-lbl {
-  font-size: 0.68em;
+  font-size: 0.66em;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--tx3);
 }
-.impact-metric-val {
-  font-size: 1.15em;
+.impact-metric-arrow {
+  font-size: 0.85em;
   font-weight: 700;
-  color: var(--txt);
-  font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
 .impact-metric-delta {
-  font-size: 0.72em;
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--tx2);
+  font-variant-numeric: tabular-nums;
+}
+.impact-metric-sub {
+  font-size: 0.7em;
   color: var(--tx3);
   font-variant-numeric: tabular-nums;
-  margin-top: 2px;
+  margin-top: auto;
 }
 .impact-delta-pos {
   color: var(--gn);
 }
+.impact-delta-pos.impact-metric-arrow::before {
+  content: "↑";
+}
 .impact-delta-neg {
   color: var(--rd);
 }
+.impact-delta-neg.impact-metric-arrow::before {
+  content: "↓";
+}
 .impact-delta-zero {
   color: var(--tx3);
+}
+
+.impact-highlight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, rgba(57, 255, 20, 0.08), rgba(57, 255, 20, 0.02));
+  border: 1px solid rgba(57, 255, 20, 0.25);
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.impact-highlight-icon {
+  color: var(--gn);
+  font-size: 1em;
+}
+.impact-highlight-text {
+  color: var(--txt);
+  font-size: 0.84em;
 }
 
 .impact-trend {

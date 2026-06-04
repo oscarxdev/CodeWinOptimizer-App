@@ -31,12 +31,11 @@ function drawImpactLabels() {
   set("impact-title", "impactTitle");
   set("impact-sub", "impactSub");
   set("impact-stamp-label", "impactStampLabel");
-  set("impact-uptime-lbl", "impactUptimeLbl");
   set("impact-boot-lbl", "impactBootLbl");
   set("impact-disk-lbl", "impactDiskLbl");
-  set("impact-ram-lbl", "impactRamLbl");
   set("impact-startup-lbl", "impactStartupLbl");
   set("impact-svc-lbl", "impactSvcLbl");
+  set("impact-proc-lbl", "impactProcLbl");
   set("impact-trend-title", "impactTrendTitle");
   set("impact-trend-empty", "impactTrendEmpty");
 }
@@ -72,36 +71,70 @@ function fmtBootDate(unixTs) {
   });
 }
 
-function fmtDelta(diff, unit, opts) {
+function computeDelta(diff, unit, opts) {
   opts = opts || {};
-  if (diff === null || diff === undefined || !isFinite(diff)) return "—";
+  if (diff === null || diff === undefined || !isFinite(diff)) {
+    return { text: "—", cls: "impact-delta-zero", dir: 0 };
+  }
   const goodUp = opts.goodUp !== false;
-  const eps = opts.eps || 0.01;
+  const eps = opts.eps != null ? opts.eps : 0.01;
+  const decimals = opts.decimals != null ? opts.decimals : 1;
   const abs = Math.abs(diff);
   if (abs < eps) {
-    return Object.assign({ text: "—", cls: "impact-delta-zero" });
+    return { text: T("impactNoChange"), cls: "impact-delta-zero", dir: 0 };
   }
   const sign = diff > 0 ? "+" : "−";
-  const txt = sign + abs.toFixed(opts.decimals != null ? opts.decimals : 1) + (unit || "");
+  const text = sign + abs.toFixed(decimals) + (unit || "");
   const positiveDir = diff > 0 ? goodUp : !goodUp;
-  return { text: txt, cls: positiveDir ? "impact-delta-pos" : "impact-delta-neg" };
+  return {
+    text,
+    cls: positiveDir ? "impact-delta-pos" : "impact-delta-neg",
+    dir: diff > 0 ? 1 : -1,
+  };
 }
 
-function applyDelta(elId, deltaObj) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  el.classList.remove(
-    "impact-delta-pos",
-    "impact-delta-neg",
-    "impact-delta-zero",
-  );
-  if (typeof deltaObj === "string") {
-    el.textContent = deltaObj;
-    el.classList.add("impact-delta-zero");
-    return;
+function renderMetric(prefix, delta, subText) {
+  const dEl = document.getElementById("impact-" + prefix + "-delta");
+  const aEl = document.getElementById("impact-" + prefix + "-arrow");
+  const sEl = document.getElementById("impact-" + prefix + "-sub");
+  if (dEl) {
+    dEl.classList.remove(
+      "impact-delta-pos",
+      "impact-delta-neg",
+      "impact-delta-zero",
+    );
+    dEl.textContent = delta.text;
+    dEl.classList.add(delta.cls);
   }
-  el.textContent = deltaObj.text;
-  el.classList.add(deltaObj.cls);
+  if (aEl) {
+    aEl.classList.remove(
+      "impact-delta-pos",
+      "impact-delta-neg",
+      "impact-delta-zero",
+    );
+    aEl.textContent = "";
+    if (delta.dir !== 0) aEl.classList.add(delta.cls);
+  }
+  if (sEl) sEl.textContent = subText;
+}
+
+function pickHighlight(prev, cur) {
+  if (!prev) return null;
+  const diskDiff = cur.freeDiskGB - prev.freeDiskGB;
+  const startupDiff = cur.startupEnabled - prev.startupEnabled;
+  const svcDiff = cur.servicesRunning - prev.servicesRunning;
+
+  // Disabled startup items wins — it's the most actionable outcome.
+  if (startupDiff <= -1) {
+    return T("impactHlStartupOff").replace("{n}", Math.abs(startupDiff));
+  }
+  if (diskDiff >= 0.5) {
+    return T("impactHlDiskFreed").replace("{n}", diskDiff.toFixed(1));
+  }
+  if (svcDiff <= -2) {
+    return T("impactHlServicesOff").replace("{n}", Math.abs(svcDiff));
+  }
+  return null;
 }
 
 function buildSparkline(values) {
@@ -155,11 +188,7 @@ async function loadImpactDashboard() {
     const cur = d.current || {};
     const hist = Array.isArray(d.history) ? d.history : [];
 
-    // Hero
-    document.getElementById("impact-uptime-num").textContent = fmtUptime(cur.uptimeSec);
-    document.getElementById("impact-boot-sub").textContent =
-      T("impactBootedAt") + " " + fmtBootDate(cur.lastBootTs);
-
+    // Boot hero — only metric not covered by existing Monitor cards.
     const bootBlock = document.getElementById("impact-boot-block");
     if (cur.bootDurationMs && cur.bootDurationMs > 0) {
       bootBlock.classList.remove("hidden");
@@ -170,9 +199,12 @@ async function loadImpactDashboard() {
         : "--";
       document.getElementById("impact-boot-detail").textContent =
         T("impactBootMain") + ": " + mainSec;
+      document.getElementById("impact-boot-note").textContent = "";
     } else {
       document.getElementById("impact-boot-num").textContent = "—";
       document.getElementById("impact-boot-detail").textContent =
+        T("impactBootedAt") + " " + fmtBootDate(cur.lastBootTs);
+      document.getElementById("impact-boot-note").textContent =
         T("impactBootUnavailable");
     }
 
@@ -180,50 +212,70 @@ async function loadImpactDashboard() {
     document.getElementById("impact-stamp-val").textContent =
       T("impactAgo") + " " + fmtRelative(cur.ts);
 
-    // Reference for deltas: the snapshot immediately preceding current (excluding the current itself)
-    let prev = null;
-    if (hist.length >= 2) prev = hist[hist.length - 2];
+    const prev = hist.length >= 2 ? hist[hist.length - 2] : null;
 
-    document.getElementById("impact-disk-val").textContent =
-      (cur.freeDiskGB || 0).toFixed(1) + " GB";
-    applyDelta(
-      "impact-disk-delta",
-      prev ? fmtDelta(cur.freeDiskGB - prev.freeDiskGB, " GB", { goodUp: true, decimals: 1 }) : "—",
+    renderMetric(
+      "disk",
+      prev
+        ? computeDelta(cur.freeDiskGB - prev.freeDiskGB, " GB", {
+            goodUp: true,
+            decimals: 1,
+            eps: 0.05,
+          })
+        : { text: "—", cls: "impact-delta-zero", dir: 0 },
+      T("impactNow") + " " + (cur.freeDiskGB || 0).toFixed(1) + " GB",
     );
 
-    document.getElementById("impact-ram-val").textContent =
-      ((cur.freeRamMB || 0) / 1024).toFixed(1) + " GB";
-    applyDelta(
-      "impact-ram-delta",
+    renderMetric(
+      "startup",
       prev
-        ? fmtDelta((cur.freeRamMB - prev.freeRamMB) / 1024, " GB", { goodUp: true, decimals: 1 })
-        : "—",
-    );
-
-    document.getElementById("impact-startup-val").textContent =
-      (cur.startupEnabled || 0) + " / " + (cur.startupTotal || 0);
-    applyDelta(
-      "impact-startup-delta",
-      prev
-        ? fmtDelta(cur.startupEnabled - prev.startupEnabled, "", {
+        ? computeDelta(cur.startupEnabled - prev.startupEnabled, "", {
             goodUp: false,
             decimals: 0,
             eps: 0.5,
           })
-        : "—",
+        : { text: "—", cls: "impact-delta-zero", dir: 0 },
+      T("impactNow") +
+        " " +
+        (cur.startupEnabled || 0) +
+        " / " +
+        (cur.startupTotal || 0),
     );
 
-    document.getElementById("impact-svc-val").textContent = cur.servicesRunning || 0;
-    applyDelta(
-      "impact-svc-delta",
+    renderMetric(
+      "svc",
       prev
-        ? fmtDelta(cur.servicesRunning - prev.servicesRunning, "", {
+        ? computeDelta(cur.servicesRunning - prev.servicesRunning, "", {
             goodUp: false,
             decimals: 0,
             eps: 0.5,
           })
-        : "—",
+        : { text: "—", cls: "impact-delta-zero", dir: 0 },
+      T("impactNow") + " " + (cur.servicesRunning || 0),
     );
+
+    renderMetric(
+      "proc",
+      prev
+        ? computeDelta(cur.processCount - prev.processCount, "", {
+            goodUp: false,
+            decimals: 0,
+            eps: 0.5,
+          })
+        : { text: "—", cls: "impact-delta-zero", dir: 0 },
+      T("impactNow") + " " + (cur.processCount || 0),
+    );
+
+    // Highlight banner — only when there's a meaningful win to surface.
+    const highlight = pickHighlight(prev, cur);
+    const hlEl = document.getElementById("impact-highlight");
+    const hlTxt = document.getElementById("impact-highlight-text");
+    if (highlight) {
+      hlTxt.textContent = highlight;
+      hlEl.classList.remove("hidden");
+    } else {
+      hlEl.classList.add("hidden");
+    }
 
     // Trend: free disk over the last 30 snapshots
     const rangeEl = document.getElementById("impact-trend-range");
@@ -236,10 +288,7 @@ async function loadImpactDashboard() {
       svgEl.classList.remove("hidden");
       const first = slice[0];
       const last = slice[slice.length - 1];
-      const days = Math.max(
-        1,
-        Math.round((last.ts - first.ts) / 86400),
-      );
+      const days = Math.max(1, Math.round((last.ts - first.ts) / 86400));
       rangeEl.textContent = T("impactTrendDays").replace("{n}", days);
     } else {
       svgEl.replaceChildren();
