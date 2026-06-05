@@ -192,6 +192,17 @@ Output: `build/bin/CodeWinOptimizer.exe`
 
 ### Completed
 
+**v1.2.3 — Startup Manager + Impact Dashboard**
+
+- [x] New **Inicio** tab — Startup Manager listing every auto-start entry: Run keys (HKLM/HKCU/WOW6432Node), Startup folders (user + all-users), AppX UWP startup tasks (Claude, Terminal, WhatsApp, Xbox, etc.) and scheduled tasks with Logon/Boot triggers
+- [x] Per-item toggle uses `StartupApproved` binary registry value (same mechanism as Task Manager) — fully reversible
+- [x] Search, filter (all/on/off), per-row type icons, summary counts
+- [x] New **Impacto** panel at the top of the Monitor tab — surfaces how the system evolves between visits with persisted snapshots (rolling 60 entries, atomic write to `%LOCALAPPDATA%\CodeWinOptimizer\impact.json`)
+- [x] Delta-first metric cards: Disk Free, Startup Programs, Running Services, Processes — color-coded vs the previous snapshot
+- [x] Reworked Updates tab — structured cards with icons, badges and CTA buttons (neutral / recommended / danger treatments)
+- [x] Monitor logic extracted to `js/monitor.js` (main.js shrunk ~440 lines)
+- [x] Responsive titlebar that survives narrow window widths; double-click on the titlebar toggles maximize; active tab scrolls into view when the tab strip overflows
+
 **v1.2.2 — Installer + Profile Refactor**
 
 - [x] One-line web installer: `irm "https://codewinoptimizer.com/win" | iex`

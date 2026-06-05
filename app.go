@@ -60,7 +60,7 @@ type App struct {
 }
 
 const (
-	appVersion    = "1.2.2"
+	appVersion    = "1.2.3"
 	githubRepo    = "oscarxdev/CodeWinOptimizer-App"
 	minOpInterval = 2 * time.Second
 )
