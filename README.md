@@ -103,8 +103,20 @@ Three one-click presets in the Tweaks toolbar that pre-select a curated set of t
 - **Quick Fixes:** Autologin, Network Reset, NTP Sync, SFC/DISM Scan, Windows Update Reset, WinGet Reinstall
 - Execute selected features or individual fixes with terminal logs
 
+### 🚀 Startup Manager (Inicio)
+
+Full visibility and control over every Windows auto-start entry, in one place:
+
+- **Run keys** — HKLM, HKCU and WOW6432Node (32-bit on 64-bit Windows)
+- **Startup folders** — user (`shell:startup`) and all-users (`shell:common startup`)
+- **AppX UWP startup tasks** — Claude, Windows Terminal, WhatsApp, Xbox, etc. Detected by parsing every `AppxManifest.xml` for `<Extension Category="windows.startupTask">` in any namespace
+- **Scheduled tasks** with Logon / Boot triggers (outside `\Microsoft\Windows\*`) — browser updaters, vendor tools, etc.
+- Per-item toggle uses the exact same `StartupApproved` binary that Task Manager writes — fully reversible, and shows the same state in Task Manager
+- **Search**, filter (all / on / off), per-row type icons, live summary counts
+
 ### 📊 Monitor
 
+- **Impact Dashboard** at the top of the tab — shows how the system evolves between visits with persisted snapshots (rolling 60 entries, atomic write to `%LOCALAPPDATA%\CodeWinOptimizer\impact.json`). Delta-first metric cards for Disk Free, Startup Programs, Running Services and Processes — color-coded vs the previous snapshot
 - **Real-time system dashboard** with 3-second auto-refresh
 - **CPU:** usage %, model name, cores/threads (gopsutil native)
 - **RAM:** used/total GB with gauge bar (gopsutil)
