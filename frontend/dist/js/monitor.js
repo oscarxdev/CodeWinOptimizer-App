@@ -31,21 +31,10 @@ function drawImpactLabels() {
   set("impact-title", "impactTitle");
   set("impact-sub", "impactSub");
   set("impact-stamp-label", "impactStampLabel");
-  set("impact-boot-lbl", "impactBootLbl");
   set("impact-disk-lbl", "impactDiskLbl");
   set("impact-startup-lbl", "impactStartupLbl");
   set("impact-svc-lbl", "impactSvcLbl");
   set("impact-proc-lbl", "impactProcLbl");
-}
-
-function fmtUptime(seconds) {
-  if (!seconds || seconds < 0) return "--";
-  const d = Math.floor(seconds / 86400);
-  const h = Math.floor((seconds % 86400) / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  if (d > 0) return `${d}d ${h}h ${m}m`;
-  if (h > 0) return `${h}h ${m}m`;
-  return `${m}m`;
 }
 
 function fmtRelative(unixTs) {
@@ -55,18 +44,6 @@ function fmtRelative(unixTs) {
   if (diffSec < 3600) return Math.floor(diffSec / 60) + " min";
   if (diffSec < 86400) return Math.floor(diffSec / 3600) + " h";
   return Math.floor(diffSec / 86400) + " d";
-}
-
-function fmtBootDate(unixTs) {
-  if (!unixTs) return "--";
-  const d = new Date(unixTs * 1000);
-  return d.toLocaleString(lang === "es" ? "es-ES" : "en-US", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 function computeDelta(diff, unit, opts) {
@@ -158,31 +135,6 @@ async function loadImpactDashboard() {
     }
     const cur = d.current || {};
     const hist = Array.isArray(d.history) ? d.history : [];
-
-    // Boot hero. Two states:
-    //   - Diagnostic captured  → big duration in seconds + main-path detail
-    //   - Not yet captured     → promote the boot date so the card has
-    //                            content; explain in the note slot.
-    const bootBlock = document.getElementById("impact-boot-block");
-    const bootNum = document.getElementById("impact-boot-num");
-    bootBlock.classList.remove("hidden");
-    if (cur.bootDurationMs && cur.bootDurationMs > 0) {
-      bootNum.textContent = (cur.bootDurationMs / 1000).toFixed(1) + " s";
-      bootNum.classList.remove("impact-boot-num-soft");
-      const mainSec = cur.bootMainPathMs
-        ? (cur.bootMainPathMs / 1000).toFixed(1) + " s"
-        : "--";
-      document.getElementById("impact-boot-detail").textContent =
-        T("impactBootMain") + ": " + mainSec;
-      document.getElementById("impact-boot-note").textContent = "";
-    } else {
-      bootNum.textContent = fmtBootDate(cur.lastBootTs);
-      bootNum.classList.add("impact-boot-num-soft");
-      document.getElementById("impact-boot-detail").textContent =
-        T("impactBootedAt");
-      document.getElementById("impact-boot-note").textContent =
-        T("impactBootUnavailable");
-    }
 
     // Stamp
     document.getElementById("impact-stamp-val").textContent =

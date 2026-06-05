@@ -32,8 +32,6 @@ type ImpactSnapshot struct {
 	ProcessCount     int     `json:"processCount"`
 	StartupTotal     int     `json:"startupTotal"`
 	StartupEnabled   int     `json:"startupEnabled"`
-	BootDurationMs   int64   `json:"bootDurationMs,omitempty"`
-	BootMainPathMs   int64   `json:"bootMainPathMs,omitempty"`
 }
 
 func metricsDir() (string, error) {

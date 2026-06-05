@@ -31,19 +31,6 @@ try { $svcRunning = (Get-Service | Where-Object Status -eq 'Running').Count } ca
 $procs = 0
 try { $procs = (Get-Process).Count } catch { }
 
-$bootMs = 0
-$bootMainMs = 0
-try {
-  $ev = Get-WinEvent -LogName 'Microsoft-Windows-Diagnostics-Performance/Operational' -MaxEvents 5 -ErrorAction Stop | Where-Object Id -eq 100 | Select-Object -First 1
-  if ($ev) {
-    $xml = [xml]$ev.ToXml()
-    foreach ($d in $xml.Event.EventData.Data) {
-      if ($d.Name -eq 'BootTime')         { $bootMs = [int]$d.'#text' }
-      if ($d.Name -eq 'MainPathBootTime') { $bootMainMs = [int]$d.'#text' }
-    }
-  }
-} catch { }
-
 [pscustomobject]@{
   ts              = [int][double]::Parse(([DateTimeOffset]$now).ToUnixTimeSeconds())
   uptimeSec       = [int]$uptime.TotalSeconds
@@ -54,8 +41,6 @@ try {
   totalDiskGB     = [math]::Round($sysDrive.Size / 1GB, 2)
   servicesRunning = [int]$svcRunning
   processCount    = [int]$procs
-  bootDurationMs  = [int]$bootMs
-  bootMainPathMs  = [int]$bootMainMs
 } | ConvertTo-Json -Compress
 `
 
@@ -125,13 +110,13 @@ foreach ($pkg in $packages) {
     $stNode = $null
     foreach ($c in $n.ChildNodes) { if ($c.LocalName -eq 'StartupTask') { $stNode = $c; break } }
     if ($null -eq $stNode -or -not $stNode.TaskId) { continue }
-    $enabled = ($stNode.Enabled -eq 'true')
+    $isOn = ($stNode.Enabled -eq 'true')
     $pkgApprovedKey = Join-Path $appxKey $pkg.PackageFamilyName
     if (Test-Path $pkgApprovedKey) {
       $v = (Get-ItemProperty -Path $pkgApprovedKey -Name $stNode.TaskId -ErrorAction SilentlyContinue).($stNode.TaskId)
-      if ($v -is [byte[]] -and $v.Length -gt 0) { $enabled = -not ($v[0] -band 0x01) }
+      if ($v -is [byte[]] -and $v.Length -gt 0) { $isOn = -not ($v[0] -band 0x01) }
     }
-    Tally $enabled
+    Tally $isOn
   }
 }
 
