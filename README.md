@@ -165,6 +165,18 @@ Full visibility and control over every Windows auto-start entry, in one place:
 - [Wails](https://wails.io/docs/gettingstarted/installation) v2
 - Windows 10/11 with WebView2 runtime
 
+### Bundled third-party binary (required for build)
+
+The app embeds **O&O ShutUp10++** at compile time via `//go:embed assets/OOSU10.exe` so the "ShutUp10++" toolbar button works out of the box. The binary is **not** redistributed in this repo (third-party freeware, `.exe` is in `.gitignore`).
+
+If you build from source, download it manually before running `wails dev` or `wails build`:
+
+1. Download `OOSU10.exe` from the official site: <https://www.oo-software.com/en/shutup10>
+2. Place it at `assets/OOSU10.exe` (create the `assets/` folder if missing)
+3. Then run `wails dev` / `wails build` as usual
+
+Without this file the Go compiler will fail with `pattern assets/OOSU10.exe: no matching files found`.
+
 ### Development (live reload)
 
 ```bash
