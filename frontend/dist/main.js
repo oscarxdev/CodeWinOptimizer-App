@@ -497,6 +497,17 @@ async function boot() {
     }
   });
 
+  // Double-click on header (titlebar) to toggle maximize.
+  // Wails' --wails-draggable: drag only handles dragging; dblclick must be wired manually
+  // since the window is frameless.
+  document.querySelector("header")?.addEventListener("dblclick", async (e) => {
+    // Ignore dblclicks that land on interactive controls
+    if (e.target.closest("button, a, .win-controls, .support-links, .settings-wrapper")) return;
+    if (!window.runtime) return;
+    const m = await window.runtime.WindowIsMaximised();
+    m ? window.runtime.WindowUnmaximise() : window.runtime.WindowMaximise();
+  });
+
   document.getElementById("btn-cancel")?.addEventListener("click", async function () {
     try {
       await window.go.main.App.CancelOperation();
@@ -598,6 +609,11 @@ function switchTab(tab) {
   document
     .querySelectorAll(".tab-content")
     .forEach((c) => c.classList.toggle("active", c.id === "tab-" + tab));
+  // Make sure the active tab is visible in the scrollable nav
+  const activeTab = document.querySelector(".tab.active");
+  if (activeTab && typeof activeTab.scrollIntoView === "function") {
+    activeTab.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
   if (tab === "tweaks") {
     drawTweaks();
     drawTweakActionLabels();

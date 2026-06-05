@@ -20,6 +20,7 @@
   --yl2: rgba(212, 255, 0, 0.1);
   --rd: #ff3333;
   --rd2: rgba(255, 51, 51, 0.1);
+  --term-width: 420px;
 }
 
 html,
@@ -42,6 +43,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 /* HEADER / TITLE BAR */
@@ -49,18 +51,29 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 10px;
+  padding: 6px 8px;
   background: #0d0d0d;
   border-bottom: 1px solid #1a1a1a;
   flex-shrink: 0;
   min-height: 36px;
+  gap: 8px;
+  min-width: 0;
 }
 .titlebar-drag {
   --wails-draggable: drag;
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   height: 100%;
+}
+header h1 {
+  font-size: 1.05em;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .header-left {
   display: flex;
@@ -71,14 +84,12 @@ header {
   flex-shrink: 0;
   filter: drop-shadow(0 0 6px rgba(57, 255, 20, 0.4));
 }
-header h1 {
-  font-size: 1.05em;
-  font-weight: 700;
-}
 .header-right {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 
 /* SUPPORT LINKS */
@@ -294,6 +305,18 @@ header h1 {
   border-bottom: 1px solid rgba(57, 255, 20, 0.15);
   font-size: 0.82em;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+#update-banner > span:first-of-type {
+  flex-shrink: 0;
+}
+#update-banner > #update-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
 }
 #update-banner .update-link {
   color: var(--gn);
@@ -303,6 +326,7 @@ header h1 {
   border-radius: 4px;
   background: rgba(57, 255, 20, 0.15);
   transition: background 0.2s;
+  flex-shrink: 0;
 }
 #update-banner .update-link:hover {
   background: rgba(57, 255, 20, 0.3);
@@ -316,6 +340,7 @@ header h1 {
   font-size: 1em;
   padding: 2px 6px;
   border-radius: 4px;
+  flex-shrink: 0;
 }
 #update-banner .update-dismiss:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -327,15 +352,32 @@ header h1 {
 
 /* TABS */
 .tabs {
+  position: relative;
   display: flex;
   gap: 0;
-  padding: 0 28px;
+  padding: 0 12px;
   border-bottom: 1px solid #1a1a1a;
   background: #0d0d0d;
   flex-shrink: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a #0d0d0d;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+}
+.tabs::-webkit-scrollbar {
+  height: 4px;
+}
+.tabs::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+.tabs::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 2px;
 }
 .tab {
-  padding: 12px 24px;
+  padding: 12px 16px;
   font-size: 0.88em;
   font-weight: 600;
   background: none;
@@ -346,7 +388,9 @@ header h1 {
   transition: all 0.2s;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .tab:hover {
   color: var(--tx2);
@@ -1144,7 +1188,7 @@ header h1 {
   flex-direction: column;
   flex-shrink: 0;
   position: relative;
-  flex: 0 0 var(--term-width, 500px);
+  flex: 0 0 var(--term-width, 420px);
   min-width: 280px;
   max-width: 70vw;
 }
@@ -2238,8 +2282,15 @@ header h1 {
 .update-info p {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px 8px;
   margin: 0;
+  min-width: 0;
+}
+.update-info p > span:last-child {
+  flex: 1 1 100%;
+  min-width: 0;
+  line-height: 1.45;
 }
 .update-info-tag {
   font-size: 0.78em;
@@ -2252,6 +2303,7 @@ header h1 {
   background: rgba(57, 255, 20, 0.08);
   border: 1px solid rgba(57, 255, 20, 0.25);
   white-space: nowrap;
+  flex-shrink: 0;
 }
 .update-note {
   font-size: 0.74em;
@@ -2366,59 +2418,6 @@ header h1 {
 .impact-stamp-val {
   color: var(--tx2);
   margin-top: 2px;
-}
-
-.impact-boot-hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  background: #0a0a0a;
-  border: 1px solid var(--brd);
-  border-radius: 10px;
-  padding: 16px 18px;
-  margin-bottom: 14px;
-}
-.impact-boot-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.impact-boot-num {
-  font-size: 1.8em;
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--yl);
-  font-variant-numeric: tabular-nums;
-}
-.impact-boot-num.impact-boot-num-soft {
-  color: var(--tx2);
-  font-size: 1.3em;
-  font-weight: 600;
-}
-.impact-boot-lbl {
-  font-size: 0.72em;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--txt);
-  font-weight: 600;
-}
-.impact-boot-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  text-align: right;
-}
-.impact-boot-detail {
-  font-size: 0.78em;
-  color: var(--tx2);
-  font-variant-numeric: tabular-nums;
-}
-.impact-boot-note {
-  font-size: 0.7em;
-  color: var(--tx3);
-  font-style: italic;
 }
 
 .impact-metrics {
@@ -2753,6 +2752,36 @@ header h1 {
   font-size: 0.88em;
 }
 
+@media (min-width: 1101px) {
+  /* Restore the wider paddings on large screens */
+  .tabs {
+    padding: 0 28px;
+  }
+  header {
+    padding: 6px 10px;
+  }
+  .tab {
+    padding: 12px 24px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 1100px) {
+  header,
+  #update-banner,
+  .tab-content {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  /* Hide support-link text labels — keep just the icons */
+  .support-btn span {
+    display: none;
+  }
+  .support-btn {
+    padding: 4px 6px;
+  }
+}
+
 @media (max-width: 900px) {
   .updates-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -2763,16 +2792,36 @@ header h1 {
   .app-cat-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
+  /* Compact tabs: smaller padding, smaller font */
+  .tab {
+    padding: 10px 14px;
+    font-size: 0.82em;
+    gap: 6px;
+  }
+  .tab-icon {
+    width: 16px;
+    height: 16px;
+  }
+  /* Reduce default terminal width on small viewports */
+  :root {
+    --term-width: 360px;
+  }
 }
 
 @media (max-width: 640px) {
   header,
+  #update-banner,
   .tabs {
-    padding: 12px 14px;
+    padding: 10px 12px;
+  }
+  /* On very small windows, hide the app title to keep header usable */
+  header h1 {
+    display: none;
   }
   .tab {
-    padding: 10px 14px;
-    font-size: 0.8em;
+    padding: 9px 12px;
+    font-size: 0.78em;
+    gap: 5px;
   }
   .tab-content {
     padding: 14px;
@@ -2780,6 +2829,7 @@ header h1 {
   #terminal {
     margin: 0 14px 0 14px;
     max-height: 240px;
+    min-width: 0;
   }
   .features-panels {
     grid-template-columns: 1fr;
