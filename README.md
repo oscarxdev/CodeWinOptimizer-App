@@ -50,6 +50,10 @@ Prefer a manual download? Grab the `.exe` from the [latest release](https://gith
 | -------------------------------- | ----------------------------- |
 | ![Updates](docs/preview/7.png)   | ![Settings](docs/preview/8.png) |
 
+| Startup Manager                  |                               |
+| -------------------------------- | ----------------------------- |
+| ![Startup](docs/preview/9.png)   |                               |
+
 </details>
 
 ## Features
