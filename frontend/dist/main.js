@@ -407,6 +407,26 @@ async function boot() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(drawApps, 200);
   });
+  let tweakSearchTimer = null;
+  document.getElementById("tweak-search").addEventListener("input", function () {
+    tweakQuery = this.value;
+    const hint = document.getElementById("tweaks-filter-hint");
+    if (hint) {
+      const q = tweakQuery.trim();
+      if (!q) hint.textContent = "";
+      else {
+        let n = 0;
+        catData.forEach((c) =>
+          c.tweaks.forEach((t) => {
+            if (tweakMatch(t, q.toLowerCase())) n++;
+          }),
+        );
+        hint.textContent = n === 0 ? T("tweakNoResults") : T("tweakResults").replace("{n}", String(n));
+      }
+    }
+    clearTimeout(tweakSearchTimer);
+    tweakSearchTimer = setTimeout(drawTweaks, 150);
+  });
   document
     .getElementById("btn-clear-selection")
     .addEventListener("click", function () {
@@ -908,182 +928,409 @@ async function doUninstall(appId) {
   checkInstalled();
 }
 
-/* ========= TAB: TWEAKS ========= */
+/* ========= TAB: TWEAKS (master-detail + búsqueda) ========= */
+let curTweakCat = -1, // -1 = "All"
+  tweakQuery = "";
+
+function stripTweakEmoji(s) {
+  return String(s || "")
+    .replace(
+      /[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}\u{2190}-\u{21FF}\u{2B05}-\u{2B07}\u{25A0}-\u{25FF}]/gu,
+      "",
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function tweakSearchable(t) {
+  const parts = [t.id || ""];
+  for (const k of ["en", "es"]) {
+    const n = t.name && t.name[k];
+    const d = t.description && t.description[k];
+    if (n) parts.push(stripTweakEmoji(n));
+    if (d) parts.push(d);
+  }
+  return parts.join(" ").toLowerCase();
+}
+
+function tweakMatch(t, q) {
+  return tweakSearchable(t).includes(q);
+}
+
 function drawTweaks() {
   document.getElementById("tab-tweaks-label").textContent = T("tabTweaks");
-  const grid = document.getElementById("tweaks-grid");
-  grid.replaceChildren(...catData.map((c, ci) => catCard(c, ci)));
+  const pane = document.getElementById("tweak-pane");
+  const nav = document.getElementById("tweaks-nav");
+  if (!pane || !nav) return;
+
+  const input = document.getElementById("tweak-search");
+  if (input) input.placeholder = T("tweakSearch");
+
+  if (curTweakCat == null || curTweakCat >= catData.length) curTweakCat = -1;
+  const q = tweakQuery.trim().toLowerCase();
+
+  nav.replaceChildren(tweakNavItem(null, -1, q), ...catData.map((c, ci) => tweakNavItem(c, ci, q)));
+  nav.setAttribute("aria-label", T("tweakCategories"));
+
+  if (q) renderTweakResults(q, pane);
+  else renderTweakCategory(curTweakCat, pane);
+
   bindTweakEv();
 }
 
-function catCard(c, ci) {
-  const n = LO(c.name);
-  const w = c.tweaks.filter((t) => t.commands && t.commands.length > 0);
-  const sel = w.filter((t) => pickedT.has(t.id)).length;
-  const allSel = sel > 0 && sel === w.length;
-  return h("div", { className: "cat-card", "data-ci": String(ci) },
-    h("div", { className: "cat-head" },
-      h("div", { className: "cat-head-left" },
-        h("span", { className: "cat-name", textContent: n }),
-      ),
-      h("div", { style: "display:flex;align-items:center;gap:10px" },
-        h("span", {
-          className: "cat-badge" + (allSel ? " cat-badge-full" : sel > 0 ? " cat-badge-partial" : ""),
-          "data-ci": String(ci),
-          textContent: `${sel} / ${w.length}`,
-        }),
-        h("span", { className: "cat-arrow", textContent: "▼" }),
-      ),
-    ),
-    h("div", { className: "cat-body" },
-      h("div", { className: "cat-sel-all", "data-ci": String(ci) },
-        h("button", { className: "cat-sel-all-btn", type: "button" },
-          h("span", { className: "sel-ico", textContent: "☐" }),
-          h("span", { className: "sel-lbl", textContent: T("selectAll") }),
-        ),
-      ),
-      c.tweaks.map((t) => tweakRow(t)),
-    ),
+function tweakNavItem(c, ci, q) {
+  const isAll = ci === -1;
+  let name, w, sel;
+  if (isAll) {
+    name = T("tweakAll");
+    w = [];
+    sel = 0;
+    catData.forEach((cat) => {
+      const tw = cat.tweaks.filter((t) => t.commands && t.commands.length > 0);
+      w.push(...tw);
+    });
+    sel = w.filter((t) => pickedT.has(t.id)).length;
+  } else {
+    name = stripTweakEmoji(LO(c.name));
+    w = c.tweaks.filter((t) => t.commands && t.commands.length > 0);
+    sel = w.filter((t) => pickedT.has(t.id)).length;
+  }
+  const active = !q && curTweakCat === ci;
+  return h(
+    "button",
+    {
+      className: "tweak-cat" + (isAll ? " tweak-cat-all" : "") + (active ? " active" : ""),
+      "data-ci": String(ci),
+      type: "button",
+      role: "tab",
+      "aria-selected": active ? "true" : "false",
+    },
+    h("span", { className: "tweak-cat-name", textContent: name }),
+    h("span", {
+      className:
+        "cat-badge" +
+        (sel > 0 && sel === w.length ? " cat-badge-full" : sel > 0 ? " cat-badge-partial" : ""),
+      textContent: `${sel} / ${w.length}`,
+    }),
   );
 }
 
+function allTweakStats() {
+  let w = 0,
+    sel = 0,
+    total = 0,
+    nInfo = 0;
+  catData.forEach((cat) => {
+    cat.tweaks.forEach((t) => {
+      total++;
+      if (t.commands && t.commands.length > 0) {
+        w++;
+        if (pickedT.has(t.id)) sel++;
+      } else nInfo++;
+    });
+  });
+  return { w, sel, total, nInfo };
+}
+
+function tweakPaneHead(title, sub, ci) {
+  return h(
+    "div",
+    { className: "tweak-pane-head" },
+    h(
+      "div",
+      { className: "tweak-pane-title" },
+      h("h2", { className: "page-title", textContent: title }),
+      h("p", { className: "page-sub", textContent: sub }),
+    ),
+    ci != null
+      ? h(
+          "div",
+          { className: "cat-sel-all", "data-ci": String(ci) },
+          h(
+            "button",
+            { className: "cat-sel-all-btn", type: "button" },
+            h("span", { className: "sel-ico", textContent: "☐" }),
+            h("span", { className: "sel-lbl", textContent: T("selectAll") }),
+          ),
+        )
+      : null,
+  );
+}
+
+function renderTweakCategory(ci, pane) {
+  if (ci === -1) return renderAllTweaks(pane);
+  const c = catData[ci];
+  if (!c) return;
+  const title = stripTweakEmoji(LO(c.name));
+  const nInfo = c.tweaks.filter((t) => !(t.commands && t.commands.length > 0)).length;
+  const sub =
+    c.tweaks.length +
+    " " +
+    T("tweaksTotal") +
+    (nInfo ? " · " + nInfo + " " + T("tweaksInfoOnly") : "");
+  pane.replaceChildren(
+    tweakPaneHead(title, sub, ci),
+    h("div", { className: "tweak-list" }, ...c.tweaks.map((t) => tweakRow(t))),
+  );
+  pane.scrollTop = 0;
+}
+
+function renderAllTweaks(pane) {
+  const st = allTweakStats();
+  const sub =
+    st.total +
+    " " +
+    T("tweaksTotal") +
+    " · " +
+    catData.length +
+    " " +
+    T("tweakCats");
+  const sections = catData
+    .map((c, ci) => {
+      if (!c.tweaks || c.tweaks.length === 0) return null;
+      return h(
+        "section",
+        { className: "tweak-group", "data-ci": String(ci) },
+        h(
+          "div",
+          { className: "tweak-group-head" },
+          h("h3", { className: "tweak-group-title", textContent: stripTweakEmoji(LO(c.name)) }),
+          h(
+            "div",
+            { className: "cat-sel-all", "data-ci": String(ci) },
+            h(
+              "button",
+              { className: "cat-sel-all-btn cat-sel-all-btn-sm", type: "button" },
+              h("span", { className: "sel-ico", textContent: "☐" }),
+              h("span", { className: "sel-lbl", textContent: T("selectAll") }),
+            ),
+          ),
+        ),
+        h("div", { className: "tweak-list" }, ...c.tweaks.map((t) => tweakRow(t))),
+      );
+    })
+    .filter(Boolean);
+  pane.replaceChildren(
+    tweakPaneHead(T("tweakAllTitle"), sub, null),
+    h("div", { className: "tweak-groups" }, ...sections),
+  );
+  pane.scrollTop = 0;
+}
+
+function renderTweakResults(q, pane) {
+  const rows = [];
+  let n = 0;
+  catData.forEach((c) =>
+    c.tweaks.forEach((t) => {
+      if (tweakMatch(t, q)) {
+        rows.push(tweakRow(t));
+        n++;
+      }
+    }),
+  );
+  if (n === 0) {
+    pane.replaceChildren(
+      tweakPaneHead(T("tweakNoResults"), T("tweakNoResultsSub")),
+      h(
+        "div",
+        { className: "list-empty tweak-nores" },
+        h("svg", { className: "list-empty-icon", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round", strokeLinejoin: "round" },
+          h("circle", { cx: "11", cy: "11", r: "8" }),
+          h("line", { x1: "21", y1: "21", x2: "16.65", y2: "16.65" })),
+        h("p", { textContent: '"' + tweakQuery + '"' }),
+      ),
+    );
+    return;
+  }
+  pane.replaceChildren(
+    tweakPaneHead(T("tweakResults").replace("{n}", String(n)), T("tweakResultsSub")),
+    h("div", { className: "tweak-list" }, ...rows),
+  );
+  pane.scrollTop = 0;
+}
+
 function tweakRow(t) {
-  const n = LO(t.name);
+  const n = stripTweakEmoji(LO(t.name));
   const d = LO(t.description);
   const cmds = (t.commands || []).length;
   const hasW = (t.warnings?.[lang] || t.warnings?.["en"] || []).length > 0;
   const uid = "tcb-" + t.id;
   const isInfo = cmds === 0;
-  return h("div", { className: "tweak-row" + (isInfo ? " tweak-row-info" : ""), "data-tid": t.id },
-    h("div", { className: "tweak-left" },
-      isInfo
-        ? h("span", { className: "tweak-info-ico", textContent: "ℹ" })
-        : h("label", { className: "toggle" },
-            h("input", { type: "checkbox", id: uid, "data-tid": t.id, checked: pickedT.has(t.id) }),
-            h("span", { className: "toggle-slider" }),
-          ),
-      isInfo
-        ? null
-        : h("button", { className: "tweak-more-btn", "data-tid": t.id, type: "button", title: T("tweakMoreInfo"), textContent: "ℹ️" }),
-    ),
-    h("label", { className: "tweak-row-main", for: isInfo ? null : uid },
-      h("div", { className: "tweak-inf" },
-        h("div", { className: "tweak-inf-name" },
+  return h(
+    "div",
+    { className: "tweak-row" + (isInfo ? " tweak-row-info" : ""), "data-tid": t.id },
+    isInfo ? h("span", { className: "tweak-info-ico" }) : null,
+    h(
+      "div",
+      { className: "tweak-row-main" },
+      h(
+        "div",
+        { className: "tweak-inf" },
+        h(
+          "div",
+          { className: "tweak-inf-name" },
           h("span", { textContent: n }),
-          hasW ? h("span", { className: "warn-dot", textContent: "●" }) : null,
+          hasW
+            ? h("span", { className: "warn-dot", title: T("tweakHasWarn"), textContent: "●" })
+            : null,
         ),
         h("div", { className: "tweak-inf-desc", textContent: d }),
-        h("div", { className: "tweak-inf-meta" },
+        h(
+          "div",
+          { className: "tweak-inf-meta" },
           h("span", { className: "badge badge-" + t.impact, textContent: t.impact }),
-          isInfo
-            ? h("span", null, "info")
-            : h("span", null, cmds + " " + T("cmds")),
+          isInfo ? h("span", null, "info") : h("span", null, cmds + " " + T("cmds")),
         ),
       ),
     ),
+    isInfo
+      ? null
+      : h(
+          "div",
+          { className: "tweak-side" },
+          h("button", {
+            className: "tweak-more-btn",
+            "data-tid": t.id,
+            type: "button",
+            title: T("tweakMoreInfo"),
+            "aria-label": T("tweakMoreInfo"),
+          }),
+          h(
+            "label",
+            { className: "toggle" },
+            h("input", { type: "checkbox", id: uid, "data-tid": t.id, checked: pickedT.has(t.id) }),
+            h("span", { className: "toggle-slider" }),
+          ),
+        ),
   );
 }
 
-function bindTweakEv() {
-  document.querySelectorAll(".cat-card").forEach((card) => {
-    card.querySelector(".cat-head").addEventListener("click", function (e) {
-      if (e.target.tagName === "INPUT") return;
-      const w = card.classList.contains("expanded");
-      document
-        .querySelectorAll(".cat-card")
-        .forEach((c) => c.classList.remove("expanded"));
-      if (!w) {
-        card.classList.add("expanded");
-        setTimeout(
-          () => card.scrollIntoView({ behavior: "smooth", block: "start" }),
-          50,
-        );
-      }
-    });
+function updateTweakBadges() {
+  const nav = document.getElementById("tweaks-nav");
+  if (!nav) return;
+  nav.querySelectorAll(".tweak-cat").forEach((btn) => {
+    const ci = parseInt(btn.dataset.ci, 10);
+    let w = [],
+      sel = 0;
+    if (ci === -1) {
+      catData.forEach((cat) => {
+        const tw = cat.tweaks.filter((t) => t.commands && t.commands.length > 0);
+        w.push(...tw);
+      });
+    } else {
+      const c = catData[ci];
+      if (!c) return;
+      w = c.tweaks.filter((t) => t.commands && t.commands.length > 0);
+    }
+    sel = w.filter((t) => pickedT.has(t.id)).length;
+    const badge = btn.querySelector(".cat-badge");
+    if (!badge) return;
+    badge.textContent = `${sel} / ${w.length}`;
+    badge.classList.toggle("cat-badge-full", sel > 0 && sel === w.length);
+    badge.classList.toggle("cat-badge-partial", sel > 0 && sel < w.length);
   });
-  document.querySelectorAll(".cat-sel-all").forEach((el) => {
-    el.addEventListener("click", function (e) {
+}
+
+function updatePaneHeadState() {
+  const pane = document.getElementById("tweak-pane");
+  if (!pane) return;
+  pane.querySelectorAll(".cat-sel-all").forEach((wrap) => {
+    const ci = parseInt(wrap.dataset.ci, 10);
+    const c = catData[ci];
+    if (!c) return;
+    const w = c.tweaks.filter((t) => t.commands && t.commands.length > 0);
+    const all = w.length > 0 && w.every((t) => pickedT.has(t.id));
+    const lbl = wrap.querySelector(".sel-lbl");
+    const ico = wrap.querySelector(".sel-ico");
+    const btn = wrap.querySelector(".cat-sel-all-btn");
+    if (lbl) lbl.textContent = all ? T("deselectAll") : T("selectAll");
+    if (ico) ico.textContent = all ? "☑" : "☐";
+    if (btn) btn.classList.toggle("all-selected", all);
+  });
+  pane.querySelectorAll('.tweak-row input[type="checkbox"]').forEach((cb) => {
+    if (cb.disabled) return;
+    cb.checked = pickedT.has(cb.dataset.tid);
+  });
+}
+
+function preservePaneScroll(fn) {
+  const pane = document.getElementById("tweak-pane");
+  const st = pane ? pane.scrollTop : 0;
+  fn();
+  if (pane) pane.scrollTop = st;
+}
+
+function bindTweakEv() {
+  const nav = document.getElementById("tweaks-nav");
+  const pane = document.getElementById("tweak-pane");
+  if (!nav || !pane) return;
+
+  nav.addEventListener("click", function (e) {
+    const btn = e.target.closest(".tweak-cat");
+    if (!btn) return;
+    curTweakCat = parseInt(btn.dataset.ci, 10);
+    tweakQuery = "";
+    const input = document.getElementById("tweak-search");
+    if (input) input.value = "";
+    const hint = document.getElementById("tweaks-filter-hint");
+    if (hint) hint.textContent = "";
+    drawTweaks();
+    refreshUI();
+  });
+
+  pane.addEventListener("change", function (e) {
+    const cb = e.target;
+    if (cb.tagName !== "INPUT" || cb.type !== "checkbox" || !cb.dataset.tid) return;
+    e.stopPropagation();
+    const id = cb.dataset.tid;
+    if (cb.checked) pickedT.add(id);
+    else pickedT.delete(id);
+    updateTweakBadges();
+    updatePaneHeadState();
+    refreshUI();
+  });
+
+  pane.addEventListener("click", function (e) {
+    const selWrap = e.target.closest(".cat-sel-all");
+    if (selWrap) {
       e.stopPropagation();
-      const ci = parseInt(this.dataset.ci);
+      const ci = parseInt(selWrap.dataset.ci, 10);
       const cat = catData[ci];
       if (!cat) return;
       const tw = cat.tweaks.filter((t) => t.commands && t.commands.length > 0);
       const all = tw.length > 0 && tw.every((t) => pickedT.has(t.id));
       tw.forEach((t) => (all ? pickedT.delete(t.id) : pickedT.add(t.id)));
-      syncTweakCb(ci);
-      refreshUI();
-    });
-  });
-  document
-    .querySelectorAll('.tweak-row input[type="checkbox"]')
-    .forEach((cb) => {
-      cb.addEventListener("change", function (e) {
-        e.stopPropagation();
-        const id = this.dataset.tid;
-        if (this.checked) pickedT.add(id);
-        else pickedT.delete(id);
-        const card = this.closest(".cat-card");
-        if (card) updateCatBadge(parseInt(card.dataset.ci));
-        refreshUI();
+      preservePaneScroll(() => {
+        updateTweakBadges();
+        updatePaneHeadState();
       });
-    });
-  document.querySelectorAll(".tweak-row-main").forEach((row) => {
-    row.addEventListener("click", function (e) {
-      if (e.target.tagName === "INPUT" || e.target.closest(".toggle")) return;
-      const cb = this.closest(".tweak-row").querySelector(
-        '.tweak-left input[type="checkbox"]',
-      );
+      refreshUI();
+      return;
+    }
+    const main = e.target.closest(".tweak-row-main");
+    if (main && !e.target.closest("button, a")) {
+      const row = main.closest(".tweak-row");
+      const cb = row && row.querySelector('input[type="checkbox"]');
       if (cb && !cb.disabled) {
         cb.checked = !cb.checked;
-        cb.dispatchEvent(new Event("change"));
+        cb.dispatchEvent(new Event("change", { bubbles: true }));
       }
-    });
-  });
-  document.querySelectorAll(".tweak-more-btn").forEach((btn) => {
-    btn.addEventListener("click", function (e) {
+      return;
+    }
+    const more = e.target.closest(".tweak-more-btn");
+    if (more) {
       e.stopPropagation();
       e.preventDefault();
-      const tid = this.dataset.tid;
+      const tid = more.dataset.tid;
       const href = `https://codewinoptimizer.com/docs/tweaks/${tid}`;
       window.go.main.App.OpenURL(href);
       appendLog(`[DOCS] Opening: ${href}`);
-    });
+    }
   });
 }
 
-function syncTweakCb(ci) {
-  const card = document.querySelector(`.cat-card[data-ci="${ci}"]`);
-  if (!card) return;
-  const cat = catData[ci];
-  if (!cat) return;
-  const tw = cat.tweaks.filter((t) => t.commands && t.commands.length > 0);
-  const all = tw.length > 0 && tw.every((t) => pickedT.has(t.id));
-  const lbl = card.querySelector(".sel-lbl");
-  const ico = card.querySelector(".sel-ico");
-  const btn = card.querySelector(".cat-sel-all-btn");
-  if (lbl) lbl.textContent = all ? T("deselectAll") : T("selectAll");
-  if (ico) ico.textContent = all ? "☑" : "☐";
-  if (btn) btn.classList.toggle("all-selected", all);
-  card.querySelectorAll('.tweak-row input[type="checkbox"]').forEach((cb) => {
-    if (cb.disabled) return;
-    cb.checked = pickedT.has(cb.dataset.tid);
-  });
-  updateCatBadge(ci);
-}
 
-function updateCatBadge(ci) {
-  const card = document.querySelector(`.cat-card[data-ci="${ci}"]`);
-  if (!card) return;
-  const cat = catData[ci];
-  if (!cat) return;
-  const tw = cat.tweaks.filter((t) => t.commands && t.commands.length > 0);
-  const sel = tw.filter((t) => pickedT.has(t.id)).length;
-  const badge = card.querySelector(".cat-badge");
-  if (!badge) return;
-  badge.textContent = `${sel} / ${tw.length}`;
-  badge.classList.toggle("cat-badge-full", sel > 0 && sel === tw.length);
-  badge.classList.toggle("cat-badge-partial", sel > 0 && sel < tw.length);
-}
+
 
 async function doApply() {
   if (busy || pickedT.size === 0) return;
@@ -1106,6 +1353,7 @@ async function doApply() {
   if (ok) await promptRestart();
 }
 
+
 async function openShutUp10() {
   try {
     const result = await window.go.main.App.LaunchShutUp10();
@@ -1114,6 +1362,7 @@ async function openShutUp10() {
     appendLog("[ERR] " + e);
   }
 }
+
 
 async function promptRestart() {
   const yes = await showConfirm(T("restartTitle"), T("restartMsg"));
@@ -1134,8 +1383,6 @@ async function promptRestart() {
   }
 }
 
-/* ========= TAB: FEATURES ========= */
-const pickedF = new Set();
 function drawFeatures() {
   document.getElementById("tab-features-label").textContent = T("tabFeatures");
   document.getElementById("ft-features-title").textContent =
@@ -1193,6 +1440,7 @@ function drawFeatures() {
   });
 }
 
+
 async function doRunFeatures() {
   if (busy || pickedF.size === 0) return;
   setBusy(true, 300000);
@@ -1215,6 +1463,7 @@ async function doRunFeatures() {
   }
 }
 
+
 async function doRunFix(fixId) {
   if (busy) return;
   const f = FIXES.find((x) => x.id === fixId);
@@ -1234,7 +1483,6 @@ async function doRunFix(fixId) {
   }
 }
 
-/* ========= UI ========= */
 function refreshUI() {
   document.getElementById("term-title").textContent = T("terminal");
   const ab = document.getElementById("btn-apply-tweaks"),
@@ -1264,13 +1512,10 @@ function refreshUI() {
   document.getElementById("apps-count-label").textContent =
     ac > 0 ? T("installCount").replace("{n}", ac) : "";
 
-  document.querySelectorAll(".cat-card").forEach((c) => {
-    const ci = parseInt(c.dataset.ci);
-    if (!isNaN(ci)) syncTweakCb(ci);
-  });
+    updateTweakBadges();
+  updatePaneHeadState();
 }
 
-/* ========= TERMINAL ========= */
 
 async function checkAdmin() {
   try {
@@ -1283,6 +1528,7 @@ async function checkAdmin() {
     console.warn("[Admin] Failed to check admin status:", e);
   }
 }
+
 
 async function checkInstalled() {
   try {

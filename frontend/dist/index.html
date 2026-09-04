@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none';"
@@ -12,414 +13,225 @@
   </head>
   <body>
     <div id="app">
-      <header>
-        <div class="header-left titlebar-drag">
-          <img
-            class="cwo-logo"
-            src="/logo.png"
-            alt="Logo"
-            width="30"
-            height="30"
-            style="border-radius: 6px"
-          />
+      <header class="titlebar">
+        <div class="titlebar-drag header-left">
+          <img class="cwo-logo" src="/logo.png" alt="Logo" width="20" height="20" />
           <h1>CodeWinOptimizer</h1>
+          <span class="ver-chip" id="footer-version">v1.2.1</span>
         </div>
         <div class="header-right">
           <div class="support-links">
-            <a
-              href="#"
-              id="link-docs"
-              class="support-btn support-docs"
-              title="Documentation"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            <a href="#" id="link-docs" class="support-btn" title="Documentation">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               </svg>
               <span>Docs</span>
             </a>
-            <a
-              href="#"
-              id="link-patreon"
-              class="support-btn support-patreon"
-              title="Support on Patreon"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M14.82 2.41c3.96 0 7.18 3.24 7.18 7.21 0 3.96-3.22 7.18-7.18 7.18-3.97 0-7.21-3.22-7.21-7.18 0-3.97 3.24-7.21 7.21-7.21M2 21.6h3.5V2.41H2V21.6z"
-                />
+            <a href="#" id="link-patreon" class="support-btn" title="Support on Patreon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M14.82 2.41c3.96 0 7.18 3.24 7.18 7.21 0 3.96-3.22 7.18-7.18 7.18-3.97 0-7.21-3.22-7.21-7.18 0-3.97 3.24-7.21 7.21-7.21M2 21.6h3.5V2.41H2V21.6z" />
               </svg>
               <span>Patreon</span>
             </a>
-            <a
-              href="#"
-              id="link-paypal"
-              class="support-btn support-paypal"
-              title="Donate via PayPal"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path
-                  d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.23A.932.932 0 0 1 5.865 1.5h5.727c3.136 0 5.408 1.733 5.408 4.871 0 4.247-3.575 6.663-7.294 6.663H7.634l-.558 8.303z"
-                />
-                <path
-                  d="M19.535 6.271c0 4.247-3.575 6.663-7.294 6.663h-1.72l-.807 5.996a.641.641 0 0 1-.633.54H6.27l.222-1.66.558-8.302h2.072c3.72 0 7.294-2.416 7.294-6.663a4.907 4.907 0 0 0-.262-1.574c1.756.874 3.381 2.353 3.381 5z"
-                  opacity=".7"
-                />
+            <a href="#" id="link-paypal" class="support-btn" title="Donate via PayPal">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.23A.932.932 0 0 1 5.865 1.5h5.727c3.136 0 5.408 1.733 5.408 4.871 0 4.247-3.575 6.663-7.294 6.663H7.634l-.558 8.303z" />
+                <path d="M19.535 6.271c0 4.247-3.575 6.663-7.294 6.663h-1.72l-.807 5.996a.641.641 0 0 1-.633.54H6.27l.222-1.66.558-8.302h2.072c3.72 0 7.294-2.416 7.294-6.663a4.907 4.907 0 0 0-.262-1.574c1.756.874 3.381 2.353 3.381 5z" opacity=".7" />
               </svg>
               <span>PayPal</span>
             </a>
           </div>
           <div class="settings-wrapper">
             <button class="settings-btn" id="btn-settings" title="Settings">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" />
-                <path
-                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-                />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
             </button>
             <div class="settings-panel hidden" id="settings-panel">
               <div class="settings-section">
-                <h4 class="settings-label" id="settings-lang-label">
-                  Language
-                </h4>
+                <h4 class="settings-label" id="settings-lang-label">Language</h4>
                 <div class="lang-toggle" id="lang-toggle">
                   <button class="lang-btn active" data-lang="en">EN</button>
                   <button class="lang-btn" data-lang="es">ES</button>
                 </div>
               </div>
               <div class="settings-section">
-                <h4 class="settings-label" id="settings-color-label">
-                  Accent Color
-                </h4>
+                <h4 class="settings-label" id="settings-color-label">Accent Color</h4>
                 <div class="color-options" id="color-options">
-                  <button
-                    class="color-btn active"
-                    data-color="#39ff14"
-                    style="background: #39ff14"
-                    title="Neon Green"
-                  ></button>
-                  <button
-                    class="color-btn"
-                    data-color="#00ffff"
-                    style="background: #00ffff"
-                    title="Cyan"
-                  ></button>
-                  <button
-                    class="color-btn"
-                    data-color="#bf5af2"
-                    style="background: #bf5af2"
-                    title="Purple"
-                  ></button>
-                  <button
-                    class="color-btn"
-                    data-color="#ff6b35"
-                    style="background: #ff6b35"
-                    title="Orange"
-                  ></button>
-                  <button
-                    class="color-btn"
-                    data-color="#ff2d55"
-                    style="background: #ff2d55"
-                    title="Pink"
-                  ></button>
-                  <button
-                    class="color-btn"
-                    data-color="#d4ff00"
-                    style="background: #d4ff00"
-                    title="Yellow"
-                  ></button>
+                  <button class="color-btn active" data-color="#39ff14" style="background: #39ff14" title="Green"></button>
+                  <button class="color-btn" data-color="#00ffff" style="background: #00ffff" title="Cyan"></button>
+                  <button class="color-btn" data-color="#bf5af2" style="background: #bf5af2" title="Purple"></button>
+                  <button class="color-btn" data-color="#ff6b35" style="background: #ff6b35" title="Orange"></button>
+                  <button class="color-btn" data-color="#ff2d55" style="background: #ff2d55" title="Pink"></button>
+                  <button class="color-btn" data-color="#d4ff00" style="background: #d4ff00" title="Yellow"></button>
                 </div>
               </div>
               <div class="settings-section">
                 <h4 class="settings-label" id="settings-font-label">Font</h4>
                 <select id="theme-font-select" class="theme-select">
-                  <option value="'Segoe UI',system-ui,sans-serif">
-                    Segoe UI (Default)
-                  </option>
-                  <option value="'Cascadia Code','Consolas',monospace">
-                    Cascadia Code
-                  </option>
+                  <option value="'Segoe UI Variable','Segoe UI',system-ui,sans-serif">Segoe UI (Default)</option>
+                  <option value="'Cascadia Code','Consolas',monospace">Cascadia Code</option>
                   <option value="'Inter',system-ui,sans-serif">Inter</option>
-                  <option value="'JetBrains Mono',monospace">
-                    JetBrains Mono
-                  </option>
+                  <option value="'JetBrains Mono',monospace">JetBrains Mono</option>
                   <option value="Arial,sans-serif">Arial</option>
-                  <option value="'Trebuchet MS',sans-serif">
-                    Trebuchet MS
-                  </option>
+                  <option value="'Trebuchet MS',sans-serif">Trebuchet MS</option>
                 </select>
               </div>
               <div class="settings-section settings-section-actions">
-                <button
-                  id="btn-check-update"
-                  class="btn-secondary settings-update-btn"
-                >
+                <button id="btn-check-update" class="btn settings-update-btn">
                   <span id="btn-check-update-text">Check for Updates</span>
                 </button>
-                <button
-                  id="btn-theme-reset"
-                  class="btn-secondary settings-reset-btn"
-                >
+                <button id="btn-theme-reset" class="btn settings-reset-btn">
                   <span id="btn-theme-reset-text">Reset Defaults</span>
                 </button>
               </div>
             </div>
           </div>
           <div class="win-controls" role="group" aria-label="Window controls">
-            <button
-              class="win-btn win-min"
-              title="Minimize"
-              aria-label="Minimize window"
-            >
-              &#x2014;
+            <button class="win-btn win-min" title="Minimize" aria-label="Minimize window">
+              <svg viewBox="0 0 12 12" aria-hidden="true"><line x1="1.5" y1="6" x2="10.5" y2="6" stroke="currentColor" stroke-width="1" /></svg>
             </button>
-            <button
-              class="win-btn win-max"
-              title="Maximize"
-              aria-label="Maximize window"
-            >
-              &#x25A1;
+            <button class="win-btn win-max" title="Maximize" aria-label="Maximize window">
+              <svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2" y="2" width="8" height="8" fill="none" stroke="currentColor" stroke-width="1" /></svg>
             </button>
-            <button
-              class="win-btn win-close"
-              title="Close"
-              aria-label="Close window"
-            >
-              &#x2715;
+            <button class="win-btn win-close" title="Close" aria-label="Close window">
+              <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1" /></svg>
             </button>
           </div>
         </div>
       </header>
 
-      <div id="admin-warning" class="hidden">
-        <span>⚠</span>
+      <div id="admin-warning" class="notice-bar notice-warn hidden" role="alert">
+        <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
         <span id="warning-text"></span>
       </div>
-      <div id="update-banner" class="hidden">
-        <span>🚀</span>
+      <div id="update-banner" class="notice-bar notice-accent hidden">
+        <svg class="notice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+          <path d="M21 3v5h-5" />
+        </svg>
         <span id="update-text"></span>
         <a href="#" id="update-link" class="update-link"></a>
-        <button id="update-dismiss" class="update-dismiss" title="Dismiss">
-          ✕
+        <button id="update-dismiss" class="update-dismiss" title="Dismiss" aria-label="Dismiss">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.4" /></svg>
         </button>
       </div>
 
       <nav class="tabs" role="tablist" aria-label="Main navigation">
-        <button class="tab active" data-tab="restore">
-          <svg class="tab-icon" viewBox="0 0 48 48">
-            <g fill="#D1C4E9">
-              <rect x="8" y="7" width="32" height="10" rx="2" />
-              <rect x="8" y="19" width="32" height="10" rx="2" />
-              <rect x="8" y="31" width="32" height="10" rx="2" />
-            </g>
-            <g fill="#2196F3">
-              <polygon points="31,30 38,35.6 38,24.4" />
-              <path
-                d="M38 28c-.3 0-.7 0-1 .1v4c.3-.1.7-.1 1-.1 3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6c0-.3 0-.6.1-.9l-3.4-2.7c-.4 1.1-.7 2.3-.7 3.6 0 5.5 4.5 10 10 10s10-4.5 10-10-4.5-10-10-10z"
-              />
-            </g>
+        <button class="tab active" data-tab="restore" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M12 7v5l3 3" />
           </svg>
           <span id="tab-restore-label">Restore</span>
         </button>
-        <button class="tab" data-tab="apps">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none">
-            <rect
-              x="2"
-              y="2"
-              width="9"
-              height="9"
-              rx="2"
-              fill="#C7EBFF"
-              stroke="#1C1C1C"
-              stroke-width="1.5"
-            />
-            <rect
-              x="13"
-              y="2"
-              width="9"
-              height="9"
-              rx="2"
-              fill="#50A5DC"
-              stroke="#1C1C1C"
-              stroke-width="1.5"
-            />
-            <rect
-              x="2"
-              y="13"
-              width="9"
-              height="9"
-              rx="2"
-              fill="#50A5DC"
-              stroke="#1C1C1C"
-              stroke-width="1.5"
-            />
-            <rect
-              x="13"
-              y="13"
-              width="9"
-              height="9"
-              rx="2"
-              fill="#50A5DC"
-              stroke="#1C1C1C"
-              stroke-width="1.5"
-            />
+        <button class="tab" data-tab="apps" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
           </svg>
           <span id="tab-apps-label">Apps</span>
         </button>
-        <button class="tab" data-tab="tweaks">
-          <svg
-            class="tab-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#FFB020"
-            stroke-width="2"
-            stroke-linecap="round"
-          >
-            <line x1="4" y1="5" x2="4" y2="19" />
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="20" y1="5" x2="20" y2="19" />
-            <circle cx="4" cy="10" r="2.5" fill="#FFB020" stroke="none" />
-            <circle cx="12" cy="15" r="2.5" fill="#FFB020" stroke="none" />
-            <circle cx="20" cy="8" r="2.5" fill="#FFB020" stroke="none" />
+        <button class="tab" data-tab="tweaks" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="4" y1="21" x2="4" y2="14" />
+            <line x1="4" y1="10" x2="4" y2="3" />
+            <line x1="12" y1="21" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12" y2="3" />
+            <line x1="20" y1="21" x2="20" y2="16" />
+            <line x1="20" y1="12" x2="20" y2="3" />
+            <circle cx="4" cy="12" r="2" />
+            <circle cx="12" cy="10" r="2" />
+            <circle cx="20" cy="14" r="2" />
           </svg>
           <span id="tab-tweaks-label">Tweaks</span>
         </button>
-        <button class="tab" data-tab="features">
-          <svg class="tab-icon" viewBox="10 8 42 46" fill="none">
-            <path d="M15.3 19.9l16.9-7.2 11.9 28.1-17 7.3z" fill="#fff"/>
-            <path d="M24.8 43.8l17.5-7.5 1.9 4.6-17.3 7.4z" fill="#FEC34E"/>
-            <path d="M32.6 11.8L14.2 19.5l12.4 29.7 18.4-7.8L32.6 11.8zm-16.3 8.6L31.8 13.8l11.3 26.7-15.6 6.6z" fill="#2A2941"/>
-            <circle cx="34.6" cy="42.1" r="1" fill="#2A2941"/>
-            <path d="M33.1 17.2l4.6-1.9 4.5 2.8-3.6 6.2-6.6-2.4z" fill="#A694FE"/>
-            <path d="M40.8 28.1l4.5-2 4.7 2.6-3.1 6.5-7.2-2.2z" fill="#A694FE"/>
-            <path d="M27.3 28.5l3.5-1.6 3.3 2.2-2.2 4.6-5.2-1.4z" fill="#A694FE"/>
+        <button class="tab" data-tab="features" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
           </svg>
           <span id="tab-features-label">Features</span>
         </button>
-        <button class="tab" data-tab="startup">
-          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="#39ff14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="6 3 20 12 6 21 6 3" fill="#39ff14" fill-opacity="0.18"/>
+        <button class="tab" data-tab="startup" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="6 3 20 12 6 21 6 3" />
           </svg>
-          <span id="tab-startup-label">Inicio</span>
+          <span id="tab-startup-label">Startup</span>
         </button>
-        <button class="tab" data-tab="monitor">
-          <svg class="tab-icon" viewBox="1 1 22 22" fill="none">
-            <rect x="2.85" y="2.85" width="18.3" height="18.3" rx="3.66" stroke="#1C1C1C" stroke-width="1.7" stroke-linecap="round"/>
-            <path d="M7 12h2.4c.37 0 .73-.15.99-.41l2.07-2.07a1.1 1.1 0 011.56 0L16.96 12" stroke="#DF1463" stroke-width="1.7" stroke-linecap="round"/>
+        <button class="tab" data-tab="monitor" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
           </svg>
           <span id="tab-monitor-label">Monitor</span>
         </button>
-        <button class="tab" data-tab="cleanup">
-          <svg class="tab-icon" viewBox="0 0 256 256">
-            <path
-              d="M179.3 171.1c1.5-5.3-.9-12.2-5.4-15.4l-14.5-10.3c-4.5-3.2-5.5-9.5-2.3-14l57.4-80.4c3.2-4.5 2.1-10.8-2.3-14l-5-3.6c-4.5-3.2-10.8-2.1-14 2.3l-57.4 80.4c-3.2 4.5-9.5 5.5-14 2.3l-14.1-10.1c-4.5-3.2-11.9-3.4-16.5-.4l-10.5 6.8c-4.6 3-4.7 8-0.3 11.2l84.6 60.4c4.5 3.2 9.4 1.5 10.9-3.8z"
-              fill="#464646"
-            />
-            <path
-              d="M163.3 198.9c.1-2.3-1.3-5.4-3.2-6.8l-86.5-61.7c-1.9-1.4-4.7-1-6.2.8 0 0-56.9 68.9-36.9 67.8 3.5-.2 6.9-.2 10.2-.2 10.8-16.2 28.8-35 28.8-35s-8.5 19-12.6 36.4c7 1.1 13.2 2.8 18.8 4.9 4.2-4.9 7.5-9.3 7.5-9.3-1.6 4.4-2.9 7.9-3.9 10.7 6.9 2.8 12.8 6.2 18 9.5 9.1-5.7 16.4-11.8 16.4-11.8s-3.2 8.4-7.9 17.4c12.1 8.2 21 14 32.9 7.8 23.1-12.1 24.3-30.4 24.6-30.5z"
-              fill="#464646"
-            />
+        <button class="tab" data-tab="cleanup" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
           </svg>
           <span id="tab-cleanup-label">Cleanup</span>
         </button>
-        <button class="tab" data-tab="updates">
-          <svg class="tab-icon" viewBox="0 0 24 24">
-            <path
-              d="M19 2a1 1 0 00-1 1v2.33A9 9 0 003 12a1 1 0 002 0 7 7 0 0111.86-5H14a1 1 0 000 2h5a1 1 0 001-1V3a1 1 0 00-1-1z"
-              fill="#1C1C1C"
-            />
-            <path
-              d="M20 11a1 1 0 00-1 1 7 7 0 01-11.89 5H10a1 1 0 000-2H5a1 1 0 00-1 1v5a1 1 0 002 0v-2.33A9 9 0 0021 12a1 1 0 00-1-1z"
-              fill="#2CA9BC"
-            />
+        <button class="tab" data-tab="updates" role="tab">
+          <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
           </svg>
           <span id="tab-updates-label">Updates</span>
         </button>
       </nav>
 
       <div class="tab-content active" id="tab-restore">
-        <div class="restore-panels">
-          <div class="panel restore-panel">
-            <h2 id="restore-title">System Restore Point</h2>
-            <p id="restore-desc">
-              Create a restore point before making changes to your system. This
-              allows you to revert if something goes wrong.
-            </p>
-            <div class="restore-spacer">
-              <input
-                type="text"
-                id="rp-name"
-                class="rp-name-input"
-                maxlength="64"
-                placeholder="Restore point name"
-              />
+        <div class="page-head">
+          <h2 class="page-title">System Restore</h2>
+          <p class="page-sub">Create restore points and driver backups before changing your system.</p>
+        </div>
+        <div class="card-grid">
+          <section class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8" />
+                <path d="M3 3v5h5" />
+                <path d="M12 7v5l3 3" />
+              </svg>
             </div>
+            <h3 id="restore-title">System Restore Point</h3>
+            <p id="restore-desc">Create a restore point before making changes. Revert if something goes wrong.</p>
+            <input type="text" id="rp-name" class="rp-name-input" maxlength="64" placeholder="Restore point name" autocomplete="off" />
             <div class="restore-actions">
-              <button id="btn-restore" class="btn-primary">
-                <span id="btn-restore-text">Create Restore Point</span>
-              </button>
-              <button id="btn-regbackup" class="btn-secondary">
-                <span id="btn-regbackup-text">Backup Registry</span>
-              </button>
+              <button id="btn-restore" class="btn btn-accent"><span id="btn-restore-text">Create Restore Point</span></button>
+              <button id="btn-regbackup" class="btn"><span id="btn-regbackup-text">Backup Registry</span></button>
             </div>
-            <p class="restore-backup-path">
-              Backups:
-              <a href="#" id="open-backups-link"
-                >Documents\CodeWinOptimizer\registry-backups</a
-              >
-            </p>
-          </div>
-          <div class="panel restore-panel">
-            <h2 id="driver-backup-title">Driver Backup & Restore</h2>
-            <p id="driver-backup-desc">
-              Export all installed third-party drivers to a folder for
-              safekeeping, or restore them later on a fresh Windows install.
-            </p>
-            <div class="restore-spacer"></div>
-            <div class="restore-actions">
-              <button id="btn-driver-backup" class="btn-primary">
-                <span id="btn-driver-backup-text">Backup All Drivers</span>
-              </button>
-              <button id="btn-driver-restore" class="btn-secondary">
-                <span id="btn-driver-restore-text">Restore from Folder</span>
-              </button>
+            <p class="card-linkline">Backups: <a href="#" id="open-backups-link">Documents\CodeWinOptimizer\registry-backups</a></p>
+          </section>
+          <section class="card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M3 5v14a9 3 0 0 0 18 0V5" />
+                <path d="M3 12a9 3 0 0 0 18 0" />
+              </svg>
             </div>
-            <p class="restore-backup-path">
-              Backups:
-              <a href="#" id="open-drivers-link"
-                >Documents\CodeWinOptimizer\driver-backups</a
-              >
-            </p>
-          </div>
+            <h3 id="driver-backup-title">Driver Backup &amp; Restore</h3>
+            <p id="driver-backup-desc">Export all installed third-party drivers for safekeeping, or restore them on a fresh Windows install.</p>
+            <div class="restore-actions restore-actions-top">
+              <button id="btn-driver-backup" class="btn btn-accent"><span id="btn-driver-backup-text">Backup All Drivers</span></button>
+              <button id="btn-driver-restore" class="btn"><span id="btn-driver-restore-text">Restore from Folder</span></button>
+            </div>
+            <p class="card-linkline">Backups: <a href="#" id="open-drivers-link">Documents\CodeWinOptimizer\driver-backups</a></p>
+          </section>
         </div>
       </div>
 
@@ -427,33 +239,26 @@
         <div class="apps-sticky-header">
           <div class="actions-bar">
             <div class="actions-left">
-              <div class="pkg-toggle" id="pkg-toggle">
+              <div class="pkg-toggle" id="pkg-toggle" role="group" aria-label="Package manager">
                 <button class="pkg-btn active" data-pkg="winget">WinGet</button>
                 <button class="pkg-btn" data-pkg="choco">Chocolatey</button>
               </div>
               <span id="apps-count-label"></span>
             </div>
-            <button id="btn-install-apps" class="btn-primary">
+            <button id="btn-install-apps" class="btn btn-accent">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
               <span id="btn-install-text">Install Selected</span>
             </button>
           </div>
-          <input
-            type="text"
-            id="apps-search"
-            class="apps-search"
-            placeholder="Search apps..."
-            autocomplete="off"
-          />
+          <input type="text" id="apps-search" class="search" placeholder="Search apps..." autocomplete="off" />
           <div class="apps-toolbar">
-            <button id="btn-clear-selection" class="app-tool-btn">
-              Clear Selection
-            </button>
-            <button id="btn-collapse-all" class="app-tool-btn">
-              Collapse All
-            </button>
-            <button id="btn-show-installed" class="app-tool-btn">
-              Show Installed
-            </button>
+            <button id="btn-clear-selection" class="app-tool-btn">Clear Selection</button>
+            <button id="btn-collapse-all" class="app-tool-btn">Collapse All</button>
+            <button id="btn-show-installed" class="app-tool-btn">Show Installed</button>
             <span id="selected-count-label" class="selected-count-label"></span>
           </div>
         </div>
@@ -461,197 +266,176 @@
       </div>
 
       <div class="tab-content" id="tab-tweaks">
-        <div class="actions-bar">
-          <span id="tweaks-count-label"></span>
-          <div class="actions-left" style="gap: 8px">
-            <button
-              class="app-tool-btn profile-quick-btn"
-              data-profile="Standard"
-            >
-              Standard
-            </button>
-            <button
-              class="app-tool-btn profile-quick-btn"
-              data-profile="Gaming"
-            >
-              Gaming
-            </button>
-            <button
-              class="app-tool-btn profile-quick-btn"
-              data-profile="Minimal"
-            >
-              Minimal
-            </button>
-            <button class="app-tool-btn" id="btn-tweaks-select-all">
-              <span id="btn-tweaks-select-all-text">Select All</span>
-            </button>
-            <button class="app-tool-btn" id="btn-tweaks-clear">
-              <span id="btn-tweaks-clear-text">Clear Selection</span>
-            </button>
-            <button class="app-tool-btn" id="btn-open-shutup10" title="Open O&O ShutUp10++ download page">
-              <span>🛡️</span>
-              <span id="btn-open-shutup10-text">ShutUp10++</span>
-            </button>
-            <button id="btn-apply-tweaks" class="btn-primary">
-              <span id="btn-apply-text">Select tweaks</span>
-            </button>
+        <div class="tweaks-bar">
+          <div class="actions-bar">
+            <span id="tweaks-count-label"></span>
+            <div class="actions-left">
+              <button class="app-tool-btn profile-quick-btn" data-profile="Standard">Standard</button>
+              <button class="app-tool-btn profile-quick-btn" data-profile="Gaming">Gaming</button>
+              <button class="app-tool-btn profile-quick-btn" data-profile="Minimal">Minimal</button>
+              <button class="app-tool-btn" id="btn-tweaks-select-all"><span id="btn-tweaks-select-all-text">Select All</span></button>
+              <button class="app-tool-btn" id="btn-tweaks-clear"><span id="btn-tweaks-clear-text">Clear Selection</span></button>
+              <button class="app-tool-btn" id="btn-open-shutup10" title="Open O&O ShutUp10++ download page">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+                <span id="btn-open-shutup10-text">ShutUp10++</span>
+              </button>
+              <button id="btn-apply-tweaks" class="btn btn-accent">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span id="btn-apply-text">Select tweaks</span>
+              </button>
+            </div>
+          </div>
+          <div class="tweaks-searchbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input type="search" id="tweak-search" class="search" placeholder="Search tweaks..." autocomplete="off" />
+            </div>
+            <span class="tweaks-filter-hint" id="tweaks-filter-hint"></span>
           </div>
         </div>
-        <div id="tweaks-grid"></div>
+        <div class="tweaks-layout">
+          <nav class="tweaks-nav" id="tweaks-nav" aria-label="Tweak categories"></nav>
+          <div class="tweak-pane" id="tweak-pane"></div>
+        </div>
       </div>
 
       <div class="tab-content" id="tab-features">
-        <div class="features-panels">
-          <div class="ft-panel">
-            <h3 id="ft-features-title">Windows Features</h3>
+        <div class="card-grid card-grid-2">
+          <section class="card card-stretch">
+            <h3 class="card-title" id="ft-features-title">Windows Features</h3>
             <div id="ft-features-grid" class="ft-grid"></div>
-            <button id="btn-run-features" class="btn-primary">
+            <button id="btn-run-features" class="btn btn-accent btn-full">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
               <span id="btn-features-text">Run Features</span>
             </button>
-          </div>
-          <div class="ft-panel">
-            <h3 id="ft-fixes-title">Quick Fixes</h3>
+          </section>
+          <section class="card card-stretch">
+            <h3 class="card-title" id="ft-fixes-title">Quick Fixes</h3>
             <div id="ft-fixes-grid" class="ft-grid"></div>
-          </div>
+          </section>
         </div>
       </div>
 
       <div class="tab-content" id="tab-startup">
-        <div class="startup-header">
-          <div class="startup-header-text">
-            <h2 id="startup-section-title">Programas de Inicio</h2>
-            <p id="startup-section-sub">
-              Controla que se ejecuta al iniciar Windows.
-            </p>
+        <div class="page-head page-head-row">
+          <div class="page-head-text">
+            <h2 class="page-title" id="startup-section-title">Startup Apps</h2>
+            <p class="page-sub" id="startup-section-sub">Choose what runs when Windows starts.</p>
           </div>
           <div class="startup-summary">
-            <div class="startup-summary-item">
-              <span class="startup-summary-num" id="startup-count-total">0</span>
-              <span class="startup-summary-lbl" id="startup-count-total-lbl">Total</span>
+            <div class="stat">
+              <span class="stat-num" id="startup-count-total">0</span>
+              <span class="stat-lbl" id="startup-count-total-lbl">Total</span>
             </div>
-            <div class="startup-summary-item">
-              <span class="startup-summary-num startup-summary-on" id="startup-count-on">0</span>
-              <span class="startup-summary-lbl" id="startup-count-on-lbl">Activos</span>
+            <div class="stat">
+              <span class="stat-num stat-num-on" id="startup-count-on">0</span>
+              <span class="stat-lbl" id="startup-count-on-lbl">Enabled</span>
             </div>
-            <div class="startup-summary-item">
-              <span class="startup-summary-num startup-summary-off" id="startup-count-off">0</span>
-              <span class="startup-summary-lbl" id="startup-count-off-lbl">Desactivados</span>
+            <div class="stat">
+              <span class="stat-num stat-num-off" id="startup-count-off">0</span>
+              <span class="stat-lbl" id="startup-count-off-lbl">Disabled</span>
             </div>
-            <button id="btn-startup-refresh" class="startup-refresh-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 1 1-3-6.7L21 8"/>
-                <path d="M21 3v5h-5"/>
+            <button id="btn-startup-refresh" class="icon-btn" title="Refresh">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+                <path d="M21 3v5h-5" />
               </svg>
-              <span id="btn-startup-refresh-text">Refrescar</span>
+              <span id="btn-startup-refresh-text">Refresh</span>
             </button>
           </div>
         </div>
-
         <div class="startup-toolbar">
-          <input
-            type="search"
-            id="startup-search"
-            class="startup-search"
-            placeholder="Buscar..."
-            autocomplete="off"
-          />
-          <div class="startup-filters">
-            <button class="startup-filter active" data-filter="all" id="startup-filter-all">Todos</button>
-            <button class="startup-filter" data-filter="on" id="startup-filter-on">Activos</button>
-            <button class="startup-filter" data-filter="off" id="startup-filter-off">Desactivados</button>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="search" id="startup-search" class="search" placeholder="Search..." autocomplete="off" />
+          </div>
+          <div class="filter-group" role="group">
+            <button class="startup-filter active" data-filter="all" id="startup-filter-all">All</button>
+            <button class="startup-filter" data-filter="on" id="startup-filter-on">Enabled</button>
+            <button class="startup-filter" data-filter="off" id="startup-filter-off">Disabled</button>
           </div>
         </div>
-
-        <div id="startup-list" class="startup-list">
-          <div class="startup-empty" id="startup-empty">
-            <div class="startup-empty-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="6 3 20 12 6 21 6 3"/>
-              </svg>
-            </div>
-            <p id="startup-empty-text">Cargando...</p>
+        <div id="startup-list" class="list">
+          <div class="list-empty" id="startup-empty">
+            <svg class="list-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="6 3 20 12 6 21 6 3" />
+            </svg>
+            <p id="startup-empty-text">Loading...</p>
           </div>
         </div>
       </div>
 
       <div class="tab-content" id="tab-monitor">
-        <div id="impact-panel" class="impact-panel">
+        <div id="impact-panel" class="card impact-panel">
           <div class="impact-head">
             <div class="impact-head-text">
-              <h2 id="impact-title">Impacto</h2>
-              <p id="impact-sub">Como evoluciona tu sistema con el tiempo.</p>
+              <h2 class="card-title" id="impact-title">Impact</h2>
+              <p class="card-sub" id="impact-sub">How your system evolves over time.</p>
             </div>
             <div class="impact-stamp">
-              <span class="impact-stamp-label" id="impact-stamp-label">Ultima medicion</span>
+              <span class="impact-stamp-label" id="impact-stamp-label">Last measured</span>
               <span class="impact-stamp-val" id="impact-stamp-val">--</span>
             </div>
           </div>
-
           <div class="impact-metrics">
             <div class="impact-metric">
               <div class="impact-metric-head">
-                <span class="impact-metric-lbl" id="impact-disk-lbl">Disco libre</span>
+                <span class="impact-metric-lbl" id="impact-disk-lbl">Free disk</span>
                 <span class="impact-metric-arrow" id="impact-disk-arrow"></span>
               </div>
-              <span class="impact-metric-delta" id="impact-disk-delta">—</span>
-              <span class="impact-metric-sub" id="impact-disk-sub">—</span>
+              <span class="impact-metric-delta" id="impact-disk-delta">--</span>
+              <span class="impact-metric-sub" id="impact-disk-sub">--</span>
             </div>
             <div class="impact-metric">
               <div class="impact-metric-head">
-                <span class="impact-metric-lbl" id="impact-startup-lbl">Programas de inicio</span>
+                <span class="impact-metric-lbl" id="impact-startup-lbl">Startup apps</span>
                 <span class="impact-metric-arrow" id="impact-startup-arrow"></span>
               </div>
-              <span class="impact-metric-delta" id="impact-startup-delta">—</span>
-              <span class="impact-metric-sub" id="impact-startup-sub">—</span>
+              <span class="impact-metric-delta" id="impact-startup-delta">--</span>
+              <span class="impact-metric-sub" id="impact-startup-sub">--</span>
             </div>
             <div class="impact-metric">
               <div class="impact-metric-head">
-                <span class="impact-metric-lbl" id="impact-svc-lbl">Servicios activos</span>
+                <span class="impact-metric-lbl" id="impact-svc-lbl">Active services</span>
                 <span class="impact-metric-arrow" id="impact-svc-arrow"></span>
               </div>
-              <span class="impact-metric-delta" id="impact-svc-delta">—</span>
-              <span class="impact-metric-sub" id="impact-svc-sub">—</span>
+              <span class="impact-metric-delta" id="impact-svc-delta">--</span>
+              <span class="impact-metric-sub" id="impact-svc-sub">--</span>
             </div>
             <div class="impact-metric">
               <div class="impact-metric-head">
-                <span class="impact-metric-lbl" id="impact-proc-lbl">Procesos</span>
+                <span class="impact-metric-lbl" id="impact-proc-lbl">Processes</span>
                 <span class="impact-metric-arrow" id="impact-proc-arrow"></span>
               </div>
-              <span class="impact-metric-delta" id="impact-proc-delta">—</span>
-              <span class="impact-metric-sub" id="impact-proc-sub">—</span>
+              <span class="impact-metric-delta" id="impact-proc-delta">--</span>
+              <span class="impact-metric-sub" id="impact-proc-sub">--</span>
             </div>
           </div>
-
           <div class="impact-highlight hidden" id="impact-highlight">
-            <span class="impact-highlight-icon">✦</span>
+            <svg class="impact-highlight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18" /><path d="m6 6 12 12" />
+            </svg>
             <span class="impact-highlight-text" id="impact-highlight-text"></span>
           </div>
         </div>
 
-        <div id="health-score-panel" class="health-panel hidden">
+        <div id="health-score-panel" class="card health-panel hidden">
           <div class="health-ring">
             <svg viewBox="0 0 120 120" class="health-svg">
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke="#1a1a1a"
-                stroke-width="8"
-              />
-              <circle
-                cx="60"
-                cy="60"
-                r="52"
-                fill="none"
-                stroke="var(--gn)"
-                stroke-width="8"
-                stroke-linecap="round"
-                stroke-dasharray="327"
-                stroke-dashoffset="327"
-                id="health-ring-fill"
-                transform="rotate(-90 60 60)"
-              />
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="10" />
+              <circle cx="60" cy="60" r="52" fill="none" stroke="var(--gn)" stroke-width="10" stroke-linecap="round" stroke-dasharray="327" stroke-dashoffset="327" id="health-ring-fill" transform="rotate(-90 60 60)" />
             </svg>
             <div class="health-ring-text">
               <span class="health-number" id="health-number">--</span>
@@ -662,56 +446,46 @@
             <div class="health-title" id="health-title">PC Health Score</div>
             <div class="health-bars" id="health-bars"></div>
             <div class="health-tips" id="health-tips"></div>
-            <button
-              id="btn-refresh-health"
-              class="btn-secondary"
-              style="margin-top: 8px; font-size: 0.78em"
-            >
-              ↻ Refresh
+            <button id="btn-refresh-health" class="btn btn-sm" style="margin-top: 10px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
+                <path d="M21 3v5h-5" />
+              </svg>
+              <span>Refresh</span>
             </button>
           </div>
         </div>
         <div id="monitor-grid" class="monitor-grid">
           <div class="mon-card" id="mon-cpu">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2" /><rect x="9" y="9" width="6" height="6" /><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" /></svg>
               <span class="mon-card-title" id="mon-cpu-title">CPU</span>
             </div>
-            <div class="mon-gauge-bar">
-              <div class="mon-gauge-fill" id="mon-cpu-bar"></div>
-            </div>
+            <div class="mon-gauge-bar"><div class="mon-gauge-fill" id="mon-cpu-bar"></div></div>
             <div class="mon-card-val" id="mon-cpu-val">--</div>
             <div class="mon-card-sub" id="mon-cpu-sub"></div>
           </div>
           <div class="mon-card" id="mon-ram">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="10" rx="1"/><line x1="7" y1="7" x2="7" y2="17"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="17" y1="7" x2="17" y2="17"/><line x1="4" y1="20" x2="6" y2="20"/><line x1="18" y1="20" x2="20" y2="20"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="1" /><line x1="7" y1="7" x2="7" y2="17" /><line x1="12" y1="7" x2="12" y2="17" /><line x1="17" y1="7" x2="17" y2="17" /><line x1="4" y1="20" x2="6" y2="20" /><line x1="18" y1="20" x2="20" y2="20" /></svg>
               <span class="mon-card-title" id="mon-ram-title">RAM</span>
             </div>
-            <div class="mon-gauge-bar">
-              <div
-                class="mon-gauge-fill"
-                id="mon-ram-bar"
-                style="background: var(--yl)"
-              ></div>
-            </div>
+            <div class="mon-gauge-bar"><div class="mon-gauge-fill" id="mon-ram-bar" style="background: var(--gn)"></div></div>
             <div class="mon-card-val" id="mon-ram-val">--</div>
             <div class="mon-card-sub" id="mon-ram-sub"></div>
           </div>
           <div class="mon-card" id="mon-gpu">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="1"/><circle cx="8" cy="12" r="2.5"/><circle cx="16" cy="12" r="2.5"/><line x1="5" y1="18" x2="5" y2="21"/><line x1="19" y1="18" x2="19" y2="21"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="1" /><circle cx="8" cy="12" r="2.5" /><circle cx="16" cy="12" r="2.5" /><line x1="5" y1="18" x2="5" y2="21" /><line x1="19" y1="18" x2="19" y2="21" /></svg>
               <span class="mon-card-title" id="mon-gpu-title">GPU</span>
             </div>
-            <div class="mon-gauge-bar">
-              <div class="mon-gauge-fill" id="mon-gpu-bar"></div>
-            </div>
+            <div class="mon-gauge-bar"><div class="mon-gauge-fill" id="mon-gpu-bar"></div></div>
             <div class="mon-card-val" id="mon-gpu-val">--</div>
             <div class="mon-card-sub" id="mon-gpu-sub"></div>
           </div>
           <div class="mon-card mon-span-2" id="mon-disk">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 11v6c0 1.66 4.03 3 9 3s9-1.34 9-3v-6"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3" /><path d="M3 5v14a9 3 0 0 0 18 0V5" /><path d="M3 12a9 3 0 0 0 18 0" /></svg>
               <span class="mon-card-title" id="mon-disk-title">Disk</span>
             </div>
             <div class="mon-card-val" id="mon-disk-val">--</div>
@@ -719,7 +493,7 @@
           </div>
           <div class="mon-card" id="mon-uptime">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
               <span class="mon-card-title" id="mon-uptime-title">Uptime</span>
             </div>
             <div class="mon-card-val" id="mon-uptime-val">--</div>
@@ -727,88 +501,60 @@
           </div>
           <div class="mon-card mon-full" id="mon-network">
             <div class="mon-card-head">
-              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              <svg class="mon-card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
               <span class="mon-card-title" id="mon-network-title">Network</span>
             </div>
-
-            <!-- Latency Section (Real-time) -->
             <div class="network-section">
-              <div class="network-section-title">Latency (TCP)</div>
+              <div class="network-section-title">Latency</div>
               <div class="latency-grid" id="mon-network-val">
                 <div class="latency-empty">--</div>
               </div>
             </div>
-
-            <!-- DNS Section -->
-            <div
-              class="network-section"
-              id="dns-section"
-              style="
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid var(--brd);
-              "
-            >
-              <div class="network-section-title" id="dns-title">
-                DNS — Set to:
-              </div>
-              <select id="dns-select" class="dns-select">
+            <div class="network-section network-section-sep" id="dns-section">
+              <div class="network-section-title" id="dns-title">DNS - Set to:</div>
+              <select id="dns-select" class="select">
                 <option value="dhcp">DHCP / Default</option>
                 <option value="google">Google</option>
                 <option value="cloudflare">Cloudflare</option>
-                <option value="cloudflare_malware">Cloudflare — Malware</option>
-                <option value="cloudflare_malware_adult">
-                  Cloudflare — Malware + Adult
-                </option>
+                <option value="cloudflare_malware">Cloudflare - Malware</option>
+                <option value="cloudflare_malware_adult">Cloudflare - Malware + Adult</option>
                 <option value="opendns">OpenDNS</option>
                 <option value="quad9">Quad9</option>
-                <option value="adguard">AdGuard — Ads + Trackers</option>
-                <option value="adguard_full">
-                  AdGuard — Ads + Trackers + Malware + Adult
-                </option>
+                <option value="adguard">AdGuard - Ads + Trackers</option>
+                <option value="adguard_full">AdGuard - Ads + Trackers + Malware + Adult</option>
               </select>
               <div class="dns-current" id="dns-current"></div>
             </div>
-
-            <!-- Speed Test Result Section -->
-            <div
-              class="network-section"
-              id="speedtest-result"
-              style="
-                display: none;
-                margin-top: 12px;
-                padding-top: 12px;
-                border-top: 1px solid var(--brd);
-              "
-            >
+            <div class="network-section network-section-sep" id="speedtest-result" style="display: none">
               <div class="network-section-title">Speed Test Result</div>
               <div class="speedtest-ping" id="speedtest-ping"></div>
               <div class="speedtest-speeds" id="speedtest-speeds"></div>
             </div>
-
-            <!-- Action Button -->
-            <div class="network-actions" style="margin-top: 12px">
-              <button
-                id="btn-speedtest"
-                class="btn-primary"
-                style="padding: 8px 16px; font-size: 0.8em"
-              >
+            <div class="network-actions">
+              <button id="btn-speedtest" class="btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+                  <polyline points="17 6 23 6 23 12" />
+                </svg>
                 <span id="btn-speedtest-text">Run Speed Test</span>
               </button>
-              <span
-                class="speedtest-hint"
-                style="font-size: 0.75em; color: var(--tx3); margin-left: 10px"
-                >~12 seconds</span
-              >
+              <span class="speedtest-hint">~12 seconds</span>
             </div>
           </div>
         </div>
       </div>
 
       <div class="tab-content" id="tab-cleanup">
-        <div class="cleanup-bar">
-          <span id="cleanup-desc"></span>
-          <button id="btn-run-cleanup" class="btn-primary">
+        <div class="page-head page-head-row">
+          <div class="page-head-text">
+            <h2 class="page-title">Disk Cleanup</h2>
+            <p class="page-sub" id="cleanup-desc"></p>
+          </div>
+          <button id="btn-run-cleanup" class="btn btn-accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
             <span id="btn-cleanup-text">Run Cleanup</span>
           </button>
         </div>
@@ -816,145 +562,102 @@
       </div>
 
       <div class="tab-content" id="tab-updates">
-        <div class="updates-header">
-          <h2 id="updates-section-title">Windows Update Profile</h2>
-          <p id="updates-section-sub">
-            Choose how Windows handles updates on this system.
-          </p>
+        <div class="page-head">
+          <h2 class="page-title" id="updates-section-title">Windows Update Profile</h2>
+          <p class="page-sub" id="updates-section-sub">Choose how Windows handles updates on this system.</p>
         </div>
         <div class="updates-grid">
-          <div class="update-card update-card-neutral">
+          <section class="card update-card update-card-neutral">
             <div class="update-card-head">
               <div class="update-icon update-icon-neutral" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 12a9 9 0 1 1-3-6.7L21 8" />
                   <path d="M21 3v5h-5" />
                 </svg>
               </div>
-              <span class="update-badge update-badge-neutral" id="update-default-badge">Default</span>
+              <span class="tag" id="update-default-badge">Default</span>
             </div>
-            <h3 id="update-default-title">Default Windows Update Configuration</h3>
-            <ul class="update-list" id="update-default-list">
+            <h3 class="card-title" id="update-default-title">Default Windows Update Configuration</h3>
+            <ul class="checklist" id="update-default-list">
               <li>No modifications to Windows defaults</li>
               <li>Removes any custom update settings</li>
             </ul>
-            <p class="update-note" id="update-default-note">
-              Note: This resets your Windows Update settings to default out of
-              the box settings. It removes ANY policy or customization that has
-              been done to Windows Update.
-            </p>
-            <button id="btn-update-default" class="btn-update-mode">
-              <span id="btn-update-default-text">Default Settings</span>
-            </button>
-          </div>
-
-          <div class="update-card update-card-recommended">
+            <p class="card-note" id="update-default-note">Note: this resets your Windows Update settings to out-of-the-box. It removes ANY policy or customization applied to Windows Update.</p>
+            <button id="btn-update-default" class="btn btn-full"><span id="btn-update-default-text">Default Settings</span></button>
+          </section>
+          <section class="card update-card update-card-recommended">
             <div class="update-card-head">
               <div class="update-icon update-icon-ok" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   <path d="m9 12 2 2 4-4" />
                 </svg>
               </div>
-              <span class="update-badge update-badge-ok" id="update-security-badge">Recommended</span>
+              <span class="tag tag-accent" id="update-security-badge">Recommended</span>
             </div>
-            <h3 id="update-security-title">Balanced Security Configuration</h3>
-            <ul class="update-list" id="update-security-list">
+            <h3 class="card-title" id="update-security-title">Balanced Security Configuration</h3>
+            <ul class="checklist" id="update-security-list">
               <li>Feature updates delayed by 365 days</li>
               <li>Security updates installed after 4 days</li>
               <li>Prevents Windows Update from installing drivers</li>
             </ul>
             <div class="update-info">
-              <p>
-                <span class="update-info-tag">Feature Updates</span>
-                <span id="update-info-feature-text">New features and potential bugs</span>
-              </p>
-              <p>
-                <span class="update-info-tag">Security Updates</span>
-                <span id="update-info-security-text">Critical security patches</span>
-              </p>
+              <p><span class="update-info-tag">Feature Updates</span><span id="update-info-feature-text">New features and potential bugs</span></p>
+              <p><span class="update-info-tag">Security Updates</span><span id="update-info-security-text">Critical security patches</span></p>
             </div>
-            <p class="update-note" id="update-security-note">
-              Note: This only applies to Pro systems that can use group policy.
-            </p>
-            <button id="btn-update-security" class="btn-update-mode btn-update-recommended">
-              <span id="btn-update-security-text">Security Settings</span>
-            </button>
-          </div>
-
-          <div class="update-card update-card-danger">
+            <p class="card-note" id="update-security-note">Note: this only applies to Pro systems that can use group policy.</p>
+            <button id="btn-update-security" class="btn btn-accent btn-full"><span id="btn-update-security-text">Security Settings</span></button>
+          </section>
+          <section class="card update-card update-card-danger">
             <div class="update-card-head">
               <div class="update-icon update-icon-danger" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
                   <line x1="12" y1="9" x2="12" y2="13" />
                   <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
               </div>
-              <span class="update-badge update-badge-danger" id="update-disable-badge">High Risk</span>
+              <span class="tag tag-danger" id="update-disable-badge">High Risk</span>
             </div>
-            <h3 id="update-disable-title" class="update-title-danger">
-              !! Not Recommended !!
-            </h3>
-            <ul class="update-list update-list-danger" id="update-disable-list">
+            <h3 class="card-title" id="update-disable-title">Not Recommended</h3>
+            <ul class="checklist checklist-danger" id="update-disable-list">
               <li>Disables ALL Windows Updates</li>
               <li>Increases security risks</li>
               <li>Only use for isolated systems</li>
             </ul>
-            <p class="update-warning" id="update-disable-warning">
-              Warning: Your system will be vulnerable without security updates.
-            </p>
-            <button
-              id="btn-update-disable"
-              class="btn-update-mode btn-update-danger"
-            >
-              <span id="btn-update-disable-text">Disable All Updates</span>
-            </button>
-          </div>
+            <p class="card-warning" id="update-disable-warning">Warning: your system will be vulnerable without security updates.</p>
+            <button id="btn-update-disable" class="btn btn-danger btn-full"><span id="btn-update-disable-text">Disable All Updates</span></button>
+          </section>
         </div>
       </div>
 
       <div id="terminal" class="collapsed">
         <div class="term-header">
-          <span class="term-toggle">▼</span>
+          <span class="term-toggle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </span>
           <span id="term-title"></span>
           <div class="term-actions">
             <span id="term-status"></span>
-            <button id="btn-cancel" class="btn-cancel hidden">Cancel</button>
-            <button id="btn-copy" class="btn-clear">Copy</button>
-            <button id="btn-clear" class="btn-clear">Clear</button>
+            <button id="btn-cancel" class="btn btn-danger btn-xs hidden"><span>Cancel</span></button>
+            <button id="btn-copy" class="btn btn-xs">Copy</button>
+            <button id="btn-clear" class="btn btn-xs">Clear</button>
           </div>
         </div>
         <pre id="term-log"></pre>
       </div>
-
-      <footer id="app-footer">
-        <span class="footer-brand">CodeWinOptimizer</span>
-        <span class="footer-sep">&middot;</span>
-        <span class="footer-version" id="footer-version">v1.2.1</span>
-        <span class="footer-sep">&middot;</span>
-        <span class="footer-author">OscarDev</span>
-      </footer>
     </div>
 
-    <div id="custom-confirm" class="custom-confirm hidden">
-      <div class="custom-confirm-overlay"></div>
-      <div class="custom-confirm-box">
-        <div class="custom-confirm-title" id="confirm-title">Confirm</div>
-        <div class="custom-confirm-msg" id="confirm-msg"></div>
-        <div class="custom-confirm-actions">
-          <button
-            class="custom-confirm-btn custom-confirm-secondary"
-            id="confirm-cancel"
-          >
-            Cancel
-          </button>
-          <button
-            class="custom-confirm-btn custom-confirm-primary"
-            id="confirm-ok"
-          >
-            OK
-          </button>
+    <div id="custom-confirm" class="dialog hidden" role="dialog" aria-modal="true">
+      <div class="dialog-overlay"></div>
+      <div class="dialog-box">
+        <div class="dialog-title" id="confirm-title">Confirm</div>
+        <div class="dialog-msg" id="confirm-msg"></div>
+        <div class="dialog-actions">
+          <button class="btn dialog-btn" id="confirm-cancel">Cancel</button>
+          <button class="btn btn-accent dialog-btn" id="confirm-ok">OK</button>
         </div>
       </div>
     </div>

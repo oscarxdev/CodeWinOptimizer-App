@@ -242,7 +242,7 @@ async function fetchMonitor() {
         tempSpan.textContent = cpuTempC + "°C";
         cpuValEl.append(sep, tempSpan);
       }
-      document.getElementById("mon-cpu-bar").style.width = cp + "%";
+      document.getElementById("mon-cpu-bar").style.transform = "scaleX(" + cp / 100 + ")";
       document.getElementById("mon-cpu-sub").textContent =
         (d.cpu.name || "") +
         (d.cpu.cores ? " · " + d.cpu.cores + "C/" + d.cpu.threads + "T" : "");
@@ -250,8 +250,8 @@ async function fetchMonitor() {
     if (d.ram) {
       document.getElementById("mon-ram-val").textContent =
         d.ram.usedGB + " / " + d.ram.totalGB + " GB";
-      document.getElementById("mon-ram-bar").style.width =
-        (Number(d.ram.pct) || 0) + "%";
+      document.getElementById("mon-ram-bar").style.transform =
+        "scaleX(" + (Number(d.ram.pct) || 0) / 100 + ")";
       document.getElementById("mon-ram-sub").textContent =
         d.ram.freeGB + " GB free";
     }
@@ -259,7 +259,7 @@ async function fetchMonitor() {
       const g = d.gpus[0];
       const gu = Number(g.usage) || 0;
       const gpuTemp = gpuTempC !== null ? gpuTempC : Number(g.temp) || null;
-      document.getElementById("mon-gpu-bar").style.width = gu + "%";
+      document.getElementById("mon-gpu-bar").style.transform = "scaleX(" + gu / 100 + ")";
       const gpuValEl = document.getElementById("mon-gpu-val");
       gpuValEl.replaceChildren();
       const pctSpan = document.createElement("span");
@@ -298,9 +298,9 @@ async function fetchMonitor() {
         lbl.textContent = dk.drive;
         const bar = document.createElement("div");
         bar.style.cssText =
-          "flex:1;height:4px;background:#1a1a1a;border-radius:2px";
+          "flex:1;height:4px;background:rgba(255,255,255,0.1);border-radius:2px";
         const fill = document.createElement("div");
-        fill.style.cssText = `width:${pct}%;height:100%;background:${cl};border-radius:2px`;
+        fill.style.cssText = `transform:scaleX(${pct / 100});height:100%;background:${cl};transform-origin:left`;
         bar.appendChild(fill);
         const val = document.createElement("span");
         val.style.cssText = `font-size:.85em;color:${cl}`;
@@ -603,7 +603,7 @@ async function loadHealthScore() {
             { className: "health-bar-track" },
             h("div", {
               className: "health-bar-fill",
-              style: "width:" + pct + "%;background:" + cl,
+              style: "transform:scaleX(" + pct / 100 + ");transform-origin:left;background:" + cl,
             }),
           ),
           h("span", {
