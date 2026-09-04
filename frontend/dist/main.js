@@ -686,11 +686,14 @@ function drawApps() {
   const catOrder = [
     "Navegadores",
     "Multimedia",
+    "Documentos",
     "Desarrollo",
     "Juegos",
     "Comunicacion",
     "AI",
     "Utilidades",
+    "ProTools",
+    "Selfhosted",
     "MicrosoftTools",
   ];
   const allCats = [...new Set(APPS.map((a) => a.cat))].sort((a, b) => {
