@@ -8,6 +8,7 @@ let lang = "en",
   catData = [],
   pickedT = new Set(),
   pickedA = new Set(),
+  pickedF = new Set(),
   curTab = "restore",
   pkgMgr = "winget",
   installedSet = new Set();
